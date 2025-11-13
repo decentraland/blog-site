@@ -33,6 +33,7 @@
     "npm": "8.* || 9.*"
   },
   "dependencies": {
+    "@dcl/schemas": "^19.8.0",
     "@dcl/ui-env": "^1.5.1",
     "@reduxjs/toolkit": "^2.9.2",
     "algoliasearch": "^5.41.0",
