@@ -1,0 +1,8 @@
+{
+  "short_name": "DCL Blog",
+  "name": "Decentraland Blog",
+  "start_url": "/blog",
+  "display": "standalone",
+  "theme_color": "#ff2d55",
+  "background_color": "#ffffff"
+}
