@@ -21,7 +21,7 @@ const PostCard = React.memo((props: PostCardProps) => {
   const { post, loading } = props
   if (loading) {
     return (
-      <CardContainer>
+      <CardContainer elevation={0}>
         <LoadingImage variant="rectangular" />
         <CardInfo>
           <LoadingHeader>
@@ -40,7 +40,7 @@ const PostCard = React.memo((props: PostCardProps) => {
   }
 
   return (
-    <CardContainer>
+    <CardContainer elevation={0}>
       <CardImageLink to={post.url}>
         <CardImage $imageUrl={post.image.url} />
       </CardImageLink>

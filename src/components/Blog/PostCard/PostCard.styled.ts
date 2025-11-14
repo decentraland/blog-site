@@ -1,13 +1,20 @@
 import { Link } from 'react-router-dom'
-import { Box, Skeleton, styled } from 'decentraland-ui2'
+import { Box, Card, CardContent, CardMedia, Skeleton, styled } from 'decentraland-ui2'
 
-const CardContainer = styled(Box)(() => ({
+const CardContainer = styled(Card)(() => ({
   display: 'flex',
   flexDirection: 'column',
   width: 'calc((100% - (32px * 2)) / 3)',
   marginRight: '32px',
   marginBottom: '40px',
   position: 'relative',
+  boxShadow: 'none',
+  backgroundColor: 'transparent !important',
+  background: 'transparent !important',
+  '& .MuiPaper-root': {
+    backgroundColor: 'transparent !important',
+    background: 'transparent !important'
+  },
   '@media (max-width: 1096px)': {
     width: 'calc((100% - 24px) / 2)',
     marginRight: 0
@@ -20,7 +27,7 @@ const CardContainer = styled(Box)(() => ({
   }
 }))
 
-const CardImage = styled(Box)<{ $imageUrl: string }>(({ $imageUrl }) => ({
+const CardImage = styled(CardMedia)<{ $imageUrl: string }>(({ $imageUrl }) => ({
   backgroundImage: `url("${$imageUrl}")`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
@@ -40,8 +47,18 @@ const CardImageLink = styled(Link)(() => ({
   }
 }))
 
-const CardInfo = styled(Box)({
-  width: '100%'
+const CardInfo = styled(CardContent)({
+  width: '100%',
+  padding: 0,
+  backgroundColor: 'transparent !important',
+  background: 'transparent !important',
+  '&.MuiCardContent-root': {
+    backgroundColor: 'transparent !important',
+    background: 'transparent !important'
+  },
+  '&:last-child': {
+    paddingBottom: 0
+  }
 })
 
 const DateText = styled('span')(({ theme }) => ({
