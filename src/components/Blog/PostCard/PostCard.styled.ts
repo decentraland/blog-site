@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Box, Card, CardContent, CardMedia, Skeleton, styled } from 'decentraland-ui2'
+import { Box, Card, CardContent, CardMedia, Skeleton, dclColors, styled } from 'decentraland-ui2'
 
 const CardContainer = styled(Card)(() => ({
   display: 'flex',
@@ -72,14 +72,14 @@ const DateText = styled('span')(({ theme }) => ({
 }))
 
 const CategoryLink = styled(Link)(() => ({
-  color: '#a09ba8',
+  color: dclColors.neutral.gray3,
   fontSize: '13px',
   textDecoration: 'none',
   textTransform: 'uppercase',
   transition: 'color 250ms ease',
   fontWeight: 400,
   '&:hover': {
-    color: '#7d8499'
+    color: dclColors.neutral.gray2
   }
 }))
 
