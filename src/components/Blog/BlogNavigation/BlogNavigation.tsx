@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useGetBlogCategoriesQuery } from '../../../features/blog/blog.client'
-import { Search } from '../Search'
 import type { BlogNavigationProps } from './BlogNavigation.types'
 import {
   CategoryItem,
@@ -51,7 +50,6 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
               ))}
             </CategoryList>
           </NavbarCategories>
-          <Search />
         </NavbarWrapper>
       </NavbarContent>
     </NavbarContainer>
