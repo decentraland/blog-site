@@ -1,39 +1,64 @@
 import { Link } from 'react-router-dom'
-import { Box, Skeleton, dclColors, styled } from 'decentraland-ui2'
+import { Box, Card, CardContent, CardMedia, Skeleton, dclColors, styled } from 'decentraland-ui2'
 
-const CardContainer = styled(Box)(() => ({
-  width: '100%',
-  margin: '0 40px 40px 0',
-  position: 'relative',
+const CardContainer = styled(Card)(() => ({
   display: 'flex',
-  justifyContent: 'space-between',
+  flexDirection: 'column',
+  width: 'calc((100% - (32px * 2)) / 3)',
+  marginRight: '32px',
+  marginBottom: '40px',
+  position: 'relative',
+  boxShadow: 'none',
+  backgroundColor: 'transparent !important',
+  background: 'transparent !important',
+  '& .MuiPaper-root': {
+    backgroundColor: 'transparent !important',
+    background: 'transparent !important'
+  },
   '@media (max-width: 1096px)': {
-    display: 'none'
+    width: 'calc((100% - 24px) / 2)',
+    marginRight: 0
+  },
+  '@media (max-width: 568px)': {
+    width: '100%'
+  },
+  '&:nth-of-type(3n)': {
+    marginRight: 0
   }
 }))
 
-const CardImage = styled(Box)<{ $imageUrl: string }>(({ $imageUrl }) => ({
+const CardImage = styled(CardMedia)<{ $imageUrl: string }>(({ $imageUrl }) => ({
   backgroundImage: `url("${$imageUrl}")`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.16)',
   borderRadius: '5px',
-  width: '697px',
-  paddingBottom: 'calc(697px * 0.5)',
-  marginRight: '31px',
+  width: '100%',
+  marginBottom: '12px',
+  paddingBottom: '50%',
   transition: 'transform 250ms ease, box-shadow 250ms ease'
 }))
 
 const CardImageLink = styled(Link)(() => ({
   display: 'block',
-  '&:hover > div': {
+  '&:hover .post-card__image, &:hover > div': {
     transform: 'translate(0, -4px)',
     boxShadow: '0 10px 20px 0 rgba(0, 0, 0, 0.12)'
   }
 }))
 
-const CardInfo = styled(Box)({
-  width: '335px'
+const CardInfo = styled(CardContent)({
+  width: '100%',
+  padding: 0,
+  backgroundColor: 'transparent !important',
+  background: 'transparent !important',
+  '&.MuiCardContent-root': {
+    backgroundColor: 'transparent !important',
+    background: 'transparent !important'
+  },
+  '&:last-child': {
+    paddingBottom: 0
+  }
 })
 
 const DateText = styled('span')(({ theme }) => ({
@@ -60,11 +85,12 @@ const CategoryLink = styled(Link)(() => ({
 
 const TitleLink = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
+  paddingTop: '8px',
   display: 'block',
   color: theme.palette.text.primary,
-  '& h2, & h3': {
-    fontSize: '34px',
-    lineHeight: '42px',
+  '& h2, & h6': {
+    fontSize: '20px',
+    lineHeight: '28px',
     color: theme.palette.text.primary,
     fontWeight: 500
   },
@@ -76,35 +102,13 @@ const TitleLink = styled(Link)(({ theme }) => ({
   }
 }))
 
-const Description = styled('p')(({ theme }) => ({
-  display: 'block',
-  fontSize: '17px',
-  lineHeight: '26px',
-  letterSpacing: '-0.4px',
-  margin: 0,
-  paddingTop: '8px',
-  fontWeight: 400,
-  color: theme.palette.text.primary
-}))
-
 const LoadingHeader = styled(Box)(() => ({
   display: 'flex',
   justifyContent: 'space-between'
 }))
 
 const LoadingImage = styled(Skeleton)(() => ({
-  width: '697px',
-  height: '348px'
-}))
-
-const LoadingTitleLine = styled(Skeleton)(() => ({
-  width: '100%',
-  height: '40px'
-}))
-
-const LoadingTitleLineShort = styled(Skeleton)(() => ({
-  width: '90%',
-  height: '40px'
+  height: '200px'
 }))
 
 const LoadingMetaSkeleton = styled(Skeleton)(() => ({
@@ -119,10 +123,6 @@ const LoadingTextSkeletonShort = styled(Skeleton)(() => ({
   width: '80%'
 }))
 
-const LoadingContentBox = styled(Box)(({ theme }) => ({
-  marginTop: theme.spacing(2)
-}))
-
 const MetaBox = styled(Box)(() => ({}))
 
 export {
@@ -132,15 +132,11 @@ export {
   CardInfo,
   CategoryLink,
   DateText,
-  Description,
-  LoadingContentBox,
   LoadingHeader,
   LoadingImage,
   LoadingMetaSkeleton,
   LoadingTextSkeleton,
   LoadingTextSkeletonShort,
-  LoadingTitleLine,
-  LoadingTitleLineShort,
   MetaBox,
   TitleLink
 }
