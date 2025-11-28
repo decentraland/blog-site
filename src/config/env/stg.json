@@ -1,9 +1,8 @@
 {
-  "CONTENTFUL_SPACE_ID": "",
   "CONTENTFUL_PREVIEW_TOKEN": "",
-  "CONTENTFUL_ENVIRONMENT": "master",
   "ALGOLIA_APP_ID": "1H67SAMO2T",
   "ALGOLIA_API_KEY": "d7f493e3a24525b7021451b81b1d294a",
   "ALGOLIA_BLOG_INDEX": "blog_contentful_prd",
-  "AUTH_URL": "https://decentraland.today/auth"
+  "AUTH_URL": "https://decentraland.today/auth",
+  "CMS_BASE_URL": "https://cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master"
 }
