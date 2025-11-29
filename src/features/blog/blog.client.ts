@@ -1,6 +1,6 @@
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost } from './blog.mappers'
 import { getEnv } from '../../config'
-import { api } from '../../services/api'
+import { cmsApi } from '../../services/api'
 import type {
   GetBlogAuthorParams,
   GetBlogCategoryBySlugParams,
@@ -16,9 +16,13 @@ if (!CMS_BASE_URL) {
   throw new Error('CMS_BASE_URL is not set')
 }
 
+// In development, use the Vite proxy to avoid CORS issues
+// In production, use the direct CMS URL
+const baseUrl = import.meta.env.DEV ? '/api/cms' : CMS_BASE_URL
+
 // Helper function to fetch from CMS API
 async function fetchFromCMS(endpoint: string, params?: CMSQueryParams): Promise<unknown> {
-  const url = new URL(`${CMS_BASE_URL}${endpoint}`)
+  const url = new URL(`${baseUrl}${endpoint}`, window.location.origin)
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -252,7 +256,7 @@ async function fetchEntries(ids: string[]) {
   return results.filter((entry): entry is NonNullable<typeof entry> => entry !== null)
 }
 
-const blogClient = api.injectEndpoints({
+const blogClient = cmsApi.injectEndpoints({
   endpoints: (build) => ({
     getBlogPosts: build.query<PaginatedBlogPosts, GetBlogPostsParams>({
       serializeQueryArgs: ({ queryArgs }) => {

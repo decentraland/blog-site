@@ -14,7 +14,7 @@ export default defineConfig(({ command, mode }) => {
         '/api/cms': {
           target: 'https://cms.decentraland.org',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/cms/, ''),
+          rewrite: (path) => path.replace(/^\/api\/cms/, '/spaces/ea2ybdmmn1kv/environments/master'),
           configure: (proxy) => {
             proxy.on('error', (err) => {
               console.log('[Vite Proxy] Error:', err)
