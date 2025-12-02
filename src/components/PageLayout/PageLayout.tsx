@@ -1,12 +1,14 @@
 import { Container, Navbar } from 'decentraland-ui2'
-import { useAuth } from '../../features/auth/useAuth'
 import { BlogNavigation } from '../Blog/BlogNavigation'
 import type { PageLayoutProps } from './PageLayout.types'
 import { ContentWrapper, PageContainer } from './PageLayout.styled'
 
 export function PageLayout({ children, activeCategory, showBlogNavigation = false }: PageLayoutProps) {
-  const { isConnected, isConnecting, address, authorize, disconnect } = useAuth()
-
+  const isConnected = false
+  const isConnecting = false
+  const address = null
+  const authorize = () => {}
+  const disconnect = () => {}
   return (
     <PageContainer>
       <Navbar

@@ -21,6 +21,16 @@ import {
   SearchResults
 } from './Search.styled'
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'error' in error) {
+    const errorValue = error.error
+    if (typeof errorValue === 'string') {
+      return errorValue
+    }
+  }
+  return 'Something went wrong. Please try again.'
+}
+
 const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
@@ -108,7 +118,7 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
             <NoResults>
               <NoResultsImage>⚠️</NoResultsImage>
               <strong>Search error</strong>
-              <span>{error && 'error' in error ? error.error : 'Something went wrong. Please try again.'}</span>
+              <span>{getErrorMessage(error)}</span>
             </NoResults>
           )}
 
