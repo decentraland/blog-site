@@ -1,6 +1,5 @@
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost } from './blog.mappers'
-import { getEnv } from '../../config'
-import { cmsApi } from '../../services/api'
+import { cmsApi, cmsBaseUrl } from '../../services/api'
 import type {
   GetBlogAuthorParams,
   GetBlogCategoryBySlugParams,
@@ -11,17 +10,9 @@ import type {
 import type { CMSEntry, CMSListResponse, CMSQueryParams, CMSReference } from './cms.types'
 import type { BlogAuthor, BlogCategory, BlogPost, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 
-const CMS_BASE_URL = getEnv('CMS_BASE_URL')
-if (!CMS_BASE_URL) {
-  throw new Error('CMS_BASE_URL is not set')
-}
-
-// In development, use the Vite proxy to avoid CORS issues
-// In production, use the direct CMS URL
-const baseUrl = import.meta.env.DEV ? '/api/cms' : CMS_BASE_URL
-
 // Helper function to fetch from CMS API
 async function fetchFromCMS(endpoint: string, params?: CMSQueryParams): Promise<unknown> {
+  const baseUrl = cmsBaseUrl
   const url = new URL(`${baseUrl}${endpoint}`, window.location.origin)
 
   if (params) {
@@ -270,15 +261,6 @@ const blogClient = cmsApi.injectEndpoints({
         const existingIds = new Set(currentCache.posts.map((p) => p.id))
         const newPosts = newItems.posts.filter((p) => !existingIds.has(p.id))
 
-        if (import.meta.env.DEV) {
-          console.log('[RTK Query Merge]:', {
-            currentPostsCount: currentCache.posts.length,
-            newPostsReceived: newItems.posts.length,
-            newPostsAdded: newPosts.length,
-            duplicatesSkipped: newItems.posts.length - newPosts.length
-          })
-        }
-
         return {
           posts: [...currentCache.posts, ...newPosts],
           total: newItems.total,
@@ -288,20 +270,14 @@ const blogClient = cmsApi.injectEndpoints({
       forceRefetch: ({ currentArg, previousArg }) => {
         return currentArg?.skip !== previousArg?.skip
       },
-      queryFn: async ({ category, author, limit = 20, skip = 0 }) => {
+      query: ({ category, author, limit = 20, skip = 0 }) => ({
+        url: '/blog/posts',
+        params: { category, author, limit, skip }
+      }),
+      transformResponse: async (listResponse: CMSListResponse, _meta, { category, author, skip = 0 }) => {
         try {
-          if (import.meta.env.DEV) {
-            console.log('[getBlogPosts] API Request:', { skip, limit, category, author })
-          }
-
-          const listResponse = await fetchFromCMS('/blog/posts', {
-            limit,
-            skip
-          })
-
-          const listResponseTyped = listResponse as CMSListResponse
-          const ids = listResponseTyped.items.map((item) => item.sys.id)
-          const totalAvailable = listResponseTyped.total
+          const ids = listResponse.items.map((item) => item.sys.id)
+          const totalAvailable = listResponse.total
 
           const fullEntries = await fetchEntries(ids)
 
@@ -326,32 +302,15 @@ const blogClient = cmsApi.injectEndpoints({
 
           const hasMore = ids.length === 0 ? false : skip + ids.length < totalAvailable
 
-          if (import.meta.env.DEV) {
-            console.log('[getBlogPosts] Response:', {
-              skip,
-              limit,
-              idsReturned: ids.length,
-              postsMapped: batchPosts.length,
-              postsFiltered: filteredPosts.length,
-              totalAvailable,
-              hasMore
-            })
-          }
-
           return {
-            data: {
-              posts: filteredPosts,
-              total: totalAvailable,
-              hasMore
-            }
+            posts: filteredPosts,
+            total: totalAvailable,
+            hasMore
           }
         } catch (error) {
-          console.error('Error fetching blog posts:', error)
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error'
           }
         }
       },
@@ -369,34 +328,27 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogPost: build.query<BlogPost, GetBlogPostParams>({
-      queryFn: async ({ id }) => {
+      query: ({ id }) => ({ url: `/entries/${id}` }),
+      transformResponse: async (response: CMSEntry) => {
         try {
-          const response = await fetchFromCMS(`/entries/${id}`)
-          const entryResponse = response as CMSEntry
-
-          // Resolve the category link if it exists
-          if (entryResponse.fields.category) {
-            entryResponse.fields.category = await resolveCategoryLink(entryResponse.fields.category)
+          if (response.fields.category) {
+            response.fields.category = await resolveCategoryLink(response.fields.category)
           }
 
-          const post = mapBlogPost(entryResponse)
+          const post = mapBlogPost(response)
 
           if (!post) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: 'Failed to map blog post: missing required fields'
-              }
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: 'Failed to map blog post: missing required fields'
             }
           }
 
-          return { data: post }
+          return post
         } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error'
           }
         }
       },
@@ -404,21 +356,16 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogCategories: build.query<BlogCategory[], void>({
-      queryFn: async () => {
+      query: () => ({ url: '/blog/categories' }),
+      transformResponse: async (listResponse: CMSListResponse) => {
         try {
-          const listResponse = await fetchFromCMS('/blog/categories')
-          const listResponseTyped = listResponse as CMSListResponse
-          const ids = listResponseTyped.items.map((item) => item.sys.id)
+          const ids = listResponse.items.map((item) => item.sys.id)
           const fullEntries = await fetchEntries(ids)
-          const categories = fullEntries.map((entry) => mapBlogCategory(entry)).filter((cat): cat is BlogCategory => cat !== null)
-
-          return { data: categories }
+          return fullEntries.map((entry) => mapBlogCategory(entry)).filter((cat): cat is BlogCategory => cat !== null)
         } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error'
           }
         }
       },
@@ -426,22 +373,19 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogCategoryBySlug: build.query<BlogCategory, GetBlogCategoryBySlugParams>({
-      queryFn: async ({ slug }) => {
+      query: () => ({ url: '/blog/categories' }),
+      transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
         try {
-          const listResponse = await fetchFromCMS('/blog/categories')
-          const listResponseTyped = listResponse as CMSListResponse
-          const categoryEntry = listResponseTyped.items.find((item) => {
+          const categoryEntry = listResponse.items.find((item) => {
             const fields = item.fields as { slug?: string; title?: string }
             const entrySlug = fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
             return entrySlug === slug
           })
 
           if (!categoryEntry) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: `Category with slug "${slug}" not found`
-              }
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: `Category with slug "${slug}" not found`
             }
           }
 
@@ -451,21 +395,17 @@ const blogClient = cmsApi.injectEndpoints({
           const category = mapBlogCategory(entryResponse)
 
           if (!category) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: 'Failed to map category: missing required fields'
-              }
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: 'Failed to map category: missing required fields'
             }
           }
 
-          return { data: category }
+          return category
         } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error'
           }
         }
       },
@@ -473,29 +413,25 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogPostBySlug: build.query<BlogPost, GetBlogPostBySlugParams>({
-      queryFn: async ({ categorySlug, postSlug }) => {
+      query: () => ({ url: '/blog/posts' }),
+      transformResponse: async (listResponse: CMSListResponse, _meta, { categorySlug, postSlug }) => {
         try {
-          const listResponse = await fetchFromCMS('/blog/posts')
-          const listResponseTyped = listResponse as CMSListResponse
-          const postEntry = listResponseTyped.items.find((item) => {
+          const postEntry = listResponse.items.find((item) => {
             const fields = item.fields as { slug?: string; title?: string }
             const entrySlug = fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
             return entrySlug === postSlug
           })
 
           if (!postEntry) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: `Post with slug "${postSlug}" not found`
-              }
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: `Post with slug "${postSlug}" not found`
             }
           }
 
           const response = await fetchFromCMS(`/entries/${postEntry.sys.id}`)
           const entryResponse = response as CMSEntry
 
-          // Resolve the category link if it exists
           if (entryResponse.fields.category) {
             entryResponse.fields.category = await resolveCategoryLink(entryResponse.fields.category)
           }
@@ -503,30 +439,24 @@ const blogClient = cmsApi.injectEndpoints({
           const post = mapBlogPost(entryResponse)
 
           if (!post) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: 'Failed to map post: missing required fields'
-              }
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: 'Failed to map post: missing required fields'
             }
           }
 
           if (post.category.slug !== categorySlug) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: `Post found but category slug mismatch. Expected "${categorySlug}", got "${post.category.slug}"`
-              }
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: `Post found but category slug mismatch. Expected "${categorySlug}", got "${post.category.slug}"`
             }
           }
 
-          return { data: post }
+          return post
         } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error'
           }
         }
       },
@@ -534,21 +464,16 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogAuthors: build.query<BlogAuthor[], void>({
-      queryFn: async () => {
+      query: () => ({ url: '/blog/authors' }),
+      transformResponse: async (listResponse: CMSListResponse) => {
         try {
-          const listResponse = await fetchFromCMS('/blog/authors')
-          const listResponseTyped = listResponse as CMSListResponse
-          const ids = listResponseTyped.items.map((item) => item.sys.id)
+          const ids = listResponse.items.map((item) => item.sys.id)
           const fullEntries = await fetchEntries(ids)
-          const authors = fullEntries.map((entry) => mapBlogAuthor(entry)).filter((auth): auth is BlogAuthor => auth !== null)
-
-          return { data: authors }
+          return fullEntries.map((entry) => mapBlogAuthor(entry)).filter((auth): auth is BlogAuthor => auth !== null)
         } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: error instanceof Error ? error.message : 'Unknown error'
           }
         }
       },
@@ -556,31 +481,18 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogAuthor: build.query<BlogAuthor, GetBlogAuthorParams>({
-      queryFn: async ({ id }) => {
-        try {
-          const response = await fetchFromCMS(`/entries/${id}`)
-          const entryResponse = response as CMSEntry
+      query: ({ id }) => ({ url: `/entries/${id}` }),
+      transformResponse: (response: CMSEntry) => {
+        const author = mapBlogAuthor(response)
 
-          const author = mapBlogAuthor(entryResponse)
-
-          if (!author) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: 'Failed to map author: missing required fields'
-              }
-            }
-          }
-
-          return { data: author }
-        } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Unknown error'
-            }
+        if (!author) {
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: 'Failed to map author: missing required fields'
           }
         }
+
+        return author
       },
       providesTags: (result, _error, arg) => (result ? [{ type: 'Authors', id: arg.id }] : [])
     })

@@ -8,7 +8,7 @@ if (!CMS_BASE_URL) {
 
 // In development, use the Vite proxy to avoid CORS issues
 // In production, use the direct CMS URL
-const baseUrl = import.meta.env.DEV ? '/api/cms' : CMS_BASE_URL
+const cmsBaseUrl = import.meta.env.DEV ? '/api/cms' : CMS_BASE_URL
 
 /**
  * CMS API - For blog posts, categories, and authors from Contentful
@@ -16,7 +16,7 @@ const baseUrl = import.meta.env.DEV ? '/api/cms' : CMS_BASE_URL
  */
 const cmsApi = createApi({
   reducerPath: 'cmsApi',
-  baseQuery: fetchBaseQuery({ baseUrl }),
+  baseQuery: fetchBaseQuery({ baseUrl: cmsBaseUrl }),
   tagTypes: ['BlogPosts', 'BlogPost', 'Categories', 'Authors'],
   keepUnusedDataFor: 300, // Cache for 5 minutes
   refetchOnFocus: false,
@@ -24,4 +24,4 @@ const cmsApi = createApi({
   endpoints: () => ({})
 })
 
-export { cmsApi }
+export { cmsBaseUrl, cmsApi }
