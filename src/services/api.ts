@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi, fakeBaseQuery, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { getEnv } from '../config'
 
 const CMS_BASE_URL = getEnv('CMS_BASE_URL')
@@ -24,4 +24,18 @@ const cmsApi = createApi({
   endpoints: () => ({})
 })
 
-export { cmsBaseUrl, cmsApi }
+/**
+ * Algolia API - For search functionality
+ * Uses fakeBaseQuery since we use Algolia SDK directly
+ */
+const algoliaApi = createApi({
+  reducerPath: 'algoliaApi',
+  baseQuery: fakeBaseQuery(),
+  tagTypes: ['SearchResults'],
+  keepUnusedDataFor: 300, // Cache for 5 minutes
+  refetchOnFocus: false,
+  refetchOnReconnect: false,
+  endpoints: () => ({})
+})
+
+export { cmsBaseUrl, cmsApi, algoliaApi }
