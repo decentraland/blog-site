@@ -1,9 +1,47 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom/client"
-import { App } from "./App"
+import * as React from 'react'
+import { Provider } from 'react-redux'
+import { RouterProvider } from 'react-router-dom'
+import { setupListeners } from '@reduxjs/toolkit/query'
+import * as ReactDOM from 'react-dom/client'
+import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
+import { store } from './app/store'
+import { router } from './routes'
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+declare global {
+  interface Window {
+    clearSWCache?: () => void
+  }
+}
+
+// Setup RTK Query listeners for refetchOnFocus/refetchOnReconnect behaviors
+setupListeners(store.dispatch)
+
+// Register Service Worker for persistent HTTP cache
+// Note: Service Worker only works in production or when served over HTTPS
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then((registration) => {
+        // Optional: Add a function to clear cache from console
+        if (import.meta.env.DEV) {
+          window.clearSWCache = () => {
+            registration.active?.postMessage({ type: 'CLEAR_CACHE' })
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('[SW] Service Worker registration failed:', error)
+      })
+  })
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <DclThemeProvider theme={darkTheme}>
+        <RouterProvider router={router} />
+      </DclThemeProvider>
+    </Provider>
   </React.StrictMode>
 )

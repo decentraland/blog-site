@@ -45,10 +45,12 @@ function getPublicUrls() {
   const isStatic = !!process.env.GEN_STATIC_LOCAL
   const isCI = !!process.env.CI
   const isVercel = isCI && !!process.env.VERCEL
-  const isCDN = !isStatic && isCI && !isVercel
+  const isCloudflare = !!process.env.CF_PAGES || !!process.env.CLOUDFLARE
+  const isCDN = !isStatic && isCI && !isVercel && !isCloudflare
   console.log('is static', isStatic)
   console.log('is CI', isCI)
   console.log('is Vercel', isVercel)
+  console.log('is Cloudflare', isCloudflare)
   console.log('is CDN', isCDN)
   if (isCDN) {
     // master/main branch, also releases

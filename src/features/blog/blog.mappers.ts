@@ -1,6 +1,5 @@
 import { Document } from '@contentful/rich-text-types'
 import { format } from 'date-fns'
-import { locations } from '../../shared/utils/locations'
 import { slugify } from '../../shared/utils/string'
 import type { CMSEntry } from './cms.types'
 import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset } from '../../shared/types/blog.domain'
@@ -65,7 +64,7 @@ function mapBlogCategory(entry: CMSEntry | null | undefined): BlogCategory | nul
     description: (entry.fields.description as string | undefined) || '',
     image,
     isShownInMenu: (entry.fields.isShownInMenu as boolean | undefined) ?? true,
-    url: locations.category(slug)
+    url: '' // TODO: add this after adding the blog category page -> locations.category(slug)
   }
 }
 
@@ -83,7 +82,7 @@ function createDefaultCategory(entryId?: string): BlogCategory {
       mimeType: 'image/png'
     },
     isShownInMenu: false,
-    url: locations.category('uncategorized')
+    url: '' // TODO: add this after adding the blog category page -> locations.category('uncategorized')
   }
 }
 
@@ -175,7 +174,7 @@ function mapBlogPost(entry: CMSEntry | null | undefined): BlogPost | null {
     image,
     category,
     author,
-    url: locations.blog(category.slug, slug)
+    url: '' // TODO: add this after adding the blog post page -> locations.blog(category.slug, slug)
   }
 }
 
