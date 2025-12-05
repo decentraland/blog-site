@@ -1,1 +1,88 @@
-{}
+{
+  "page": {
+    "download": {
+      "title": "Download Decentraland",
+      "description": "Download Decentraland and start exploring the metaverse",
+      "download_onboarding_title": "Download Decentraland\n\nand Jump In!",
+      "not_available": "Not available for your OS",
+      "not_available_subtitle": "Decentraland is available for <span>Windows</span> & <span>macOS</span>.",
+      "download": "Download",
+      "download_for": "Download for {os_name}",
+      "total_downloads": "Total downloads: {downloads}",
+      "already_downloaded": "Already downloaded?",
+      "jump_in": "Jump In",
+      "mobile": {
+        "switch_to_computer": "Switch to your computer to download Decentraland",
+        "send_link": "Send me the link"
+      },
+      "modal": {
+        "title_first_line": "You don't have the",
+        "title_second_line": "Decentraland app yet",
+        "cta": "Got it"
+      },
+      "success": {
+        "title": "Download Started!",
+        "subtitle": "Open the file you just downloaded to finish installing Decentraland and start {action}",
+        "subtitle_action_exploring": "exploring",
+        "step": "Step",
+        "footer": "Trouble with the download? Let's try that again: {link}",
+        "footer_link_label": "Download again",
+        "event": "After the download is complete, go back to the {event} event page so you can jump in. Redirecting in {seconds} seconds.",
+        "steps": {
+          "windows": {
+            "step1": {
+              "title": "Open the file",
+              "text": "Find the <span>Setup.exe</span> file in your downloads folder and double-click it to start the installation"
+            },
+            "step2": {
+              "title": "Follow the installer",
+              "text": "The Decentraland installer will guide you through the process. Just click <span>Next</span> and follow the prompts"
+            },
+            "step3": {
+              "title": "Launch Decentraland",
+              "text": "Once installed, open Decentraland from your desktop or start menu and <span>Jump In!</span>"
+            }
+          },
+          "macOS": {
+            "step1": {
+              "title": "Open the file",
+              "text": "Find the <span>Decentraland.dmg</span> file in your downloads and double-click to open it"
+            },
+            "step2": {
+              "title": "Drag to Applications",
+              "text": "Drag the Decentraland icon to your <span>Applications</span> folder to install it"
+            },
+            "step3": {
+              "title": "Launch Decentraland",
+              "text": "Open Decentraland from your Applications folder and <span>Jump In!</span>"
+            }
+          }
+        }
+      }
+    }
+  },
+  "component": {
+    "landing": {
+      "footer": {
+        "subscribe": {
+          "stay_updated_with": "Stay updated with",
+          "decentraland": "Decentraland",
+          "src": "https://embeds.beehiiv.com/f8da188c-39d0-4fd9-9631-1a39cf9ed00d?slim=true"
+        },
+        "social": {
+          "resources": "Resources",
+          "marketplace": "Marketplace",
+          "creator_hub": "Creator Hub",
+          "docs": "Docs",
+          "events": "Events",
+          "blog": "Blog",
+          "connect": "Connect",
+          "support": "Support",
+          "email": "Email",
+          "dao": "DAO",
+          "faq": "FAQ"
+        }
+      }
+    }
+  }
+}
