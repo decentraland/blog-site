@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSearchBlogQuery } from '../../../features/search/search.api'
+import { useSearchBlogQuery } from '../../../features/search/search.client'
 import type { SearchProps } from './Search.types'
 import {
   MoreResultsItem,
