@@ -4,6 +4,7 @@ import { useMobileMediaQuery } from 'decentraland-ui2/dist/components/Media'
 import { Typography } from 'decentraland-ui2'
 import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
+import { SEO } from '../components/SEO'
 import { useGetBlogPostsQuery } from '../features/blog/blog.client'
 import { ErrorContainer } from './BlogPage.styled'
 
@@ -41,6 +42,7 @@ export const BlogPage = () => {
 
   return (
     <PageLayout showBlogNavigation activeCategory="all_articles">
+      <SEO description="Latest news, updates, and stories from the Decentraland metaverse. Explore the latest in virtual reality, NFTs, and the future of digital worlds." />
       {error ? (
         <ErrorContainer>
           <Typography color="error">Failed to load posts. Please try again later.</Typography>
