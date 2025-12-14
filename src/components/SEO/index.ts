@@ -1,2 +1,3 @@
 export { SEO } from './SEO'
-export type { SEOProps } from './SEO.types'
+export { OGType } from './SEO.types'
+export type { OGImage, SEOProps } from './SEO.types'
