@@ -4,8 +4,8 @@ import { useMobileMediaQuery } from 'decentraland-ui2/dist/components/Media'
 import { Typography } from 'decentraland-ui2'
 import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
-import { SEO } from '../components/SEO'
 import { useGetBlogPostsQuery } from '../features/blog/blog.client'
+import { useSEO } from '../hooks'
 import { ErrorContainer } from './BlogPage.styled'
 
 const POSTS_INITIAL_LOAD = 7
@@ -15,6 +15,10 @@ export const BlogPage = () => {
   const [offset, setOffset] = useState(0)
 
   const isMobile = useMobileMediaQuery()
+
+  const { SEO } = useSEO({
+    description: 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
+  })
 
   const limit = offset === 0 ? POSTS_INITIAL_LOAD : POSTS_PER_LOAD
 
@@ -42,7 +46,7 @@ export const BlogPage = () => {
 
   return (
     <PageLayout showBlogNavigation activeCategory="all_articles">
-      <SEO description="Stay up to date with Decentraland announcements, updates, community highlights, and more." />
+      <SEO />
       {error ? (
         <ErrorContainer>
           <Typography color="error">Failed to load posts. Please try again later.</Typography>

@@ -34,7 +34,7 @@ interface OGImage {
 }
 
 /**
- * SEO component props following Open Graph protocol
+ * SEO hook props following Open Graph protocol
  * @see https://ogp.me/
  */
 interface SEOProps {
