@@ -42,7 +42,7 @@ export const BlogPage = () => {
 
   return (
     <PageLayout showBlogNavigation activeCategory="all_articles">
-      <SEO description="Latest news, updates, and stories from the Decentraland metaverse. Explore the latest in virtual reality, NFTs, and the future of digital worlds." />
+      <SEO description="Stay up to date with Decentraland announcements, updates, community highlights, and more." />
       {error ? (
         <ErrorContainer>
           <Typography color="error">Failed to load posts. Please try again later.</Typography>

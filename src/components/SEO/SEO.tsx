@@ -1,12 +1,12 @@
 import { Helmet } from 'react-helmet'
 import type { SEOProps } from './SEO.types'
 
-const DEFAULT_IMAGE = 'https://decentraland.org/images/decentraland.png'
-const SITE_NAME = 'Decentraland Blog'
-const BASE_URL = 'https://decentraland.org/blog'
+const DEFAULT_IMAGE = 'https://decentraland.org/static/background-v3@1x-f3aaf66f210e3bf6a747de9951036ba3.jpg'
+const SITE_NAME = 'Decentraland'
+const BASE_URL = 'https://decentraland.org/blog/'
 
 function SEO({ title, description, image = DEFAULT_IMAGE, type = 'website', url, author, publishedTime, modifiedTime }: SEOProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME
+  const fullTitle = title || SITE_NAME
   const canonicalUrl = url || BASE_URL
 
   return (
