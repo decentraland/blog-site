@@ -28,34 +28,57 @@ const CRAWLER_USER_AGENTS = [
 ]
 
 const CMS_BASE_URL = 'https://cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master'
+const DEFAULT_IMAGE = 'https://decentraland.org/static/background-v3@1x-f3aaf66f210e3bf6a747de9951036ba3.jpg'
+const DEFAULT_TITLE = 'Decentraland Blog'
+const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
 function isCrawler(userAgent) {
   const ua = (userAgent || '').toLowerCase()
   return CRAWLER_USER_AGENTS.some((crawler) => ua.includes(crawler))
 }
 
-async function fetchFirstBlogPost() {
+async function fetchImageUrl(assetId) {
   try {
-    const response = await fetch(`${CMS_BASE_URL}/entries?content_type=blog&order=-fields.publishedDate&limit=1`)
+    const response = await fetch(`${CMS_BASE_URL}/assets/${assetId}`)
     if (!response.ok) return null
 
     const data = await response.json()
-    if (!data.items || data.items.length === 0) return null
+    return data.fields?.file?.url || null
+  } catch {
+    return null
+  }
+}
+
+async function fetchFirstBlogPost() {
+  try {
+    // Use the correct blog API endpoint
+    const response = await fetch(`${CMS_BASE_URL}/blog/posts?limit=1`)
+    if (!response.ok) {
+      console.error('[SEO] Blog API error:', response.status)
+      return null
+    }
+
+    const data = await response.json()
+    if (!data.items || data.items.length === 0) {
+      console.log('[SEO] No blog posts found')
+      return null
+    }
 
     const fields = data.items[0].fields || {}
+    console.log('[SEO] Found blog post:', fields.title)
 
-    let imageUrl = 'https://decentraland.org/static/background-v3@1x-f3aaf66f210e3bf6a747de9951036ba3.jpg'
-
-    if (fields.image?.sys?.id && data.includes?.Asset) {
-      const asset = data.includes.Asset.find((a) => a.sys?.id === fields.image.sys.id)
-      if (asset?.fields?.file?.url) {
-        imageUrl = asset.fields.file.url.startsWith('//') ? `https:${asset.fields.file.url}` : asset.fields.file.url
+    // Get the image URL from the asset
+    let imageUrl = DEFAULT_IMAGE
+    if (fields.image?.sys?.id) {
+      const assetUrl = await fetchImageUrl(fields.image.sys.id)
+      if (assetUrl) {
+        imageUrl = assetUrl
       }
     }
 
     return {
-      title: fields.title || 'Decentraland',
-      description: fields.description || 'Stay up to date with Decentraland announcements, updates, community highlights, and more.',
+      title: fields.title || DEFAULT_TITLE,
+      description: fields.description || DEFAULT_DESCRIPTION,
       imageUrl
     }
   } catch (error) {
@@ -65,9 +88,9 @@ async function fetchFirstBlogPost() {
 }
 
 function generateHTML(post, originalHTML, url) {
-  const title = post?.title || 'Decentraland'
-  const description = post?.description || 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
-  const imageUrl = post?.imageUrl || 'https://decentraland.org/static/background-v3@1x-f3aaf66f210e3bf6a747de9951036ba3.jpg'
+  const title = post?.title || DEFAULT_TITLE
+  const description = post?.description || DEFAULT_DESCRIPTION
+  const imageUrl = post?.imageUrl || DEFAULT_IMAGE
 
   let html = originalHTML
 
@@ -122,7 +145,8 @@ export async function onRequest(context) {
         headers: {
           'content-type': 'text/html;charset=UTF-8',
           'cache-control': 'public, max-age=3600',
-          'x-seo-middleware': 'active'
+          'x-seo-middleware': 'active',
+          'x-seo-post-title': post?.title || 'default'
         }
       })
     } catch (error) {
