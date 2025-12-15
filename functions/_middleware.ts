@@ -2,27 +2,48 @@
 // This intercepts requests from crawlers and serves pre-rendered HTML with correct meta tags
 
 const CRAWLER_USER_AGENTS = [
+  // Search engines
   'googlebot',
   'bingbot',
   'slurp',
   'duckduckbot',
   'baiduspider',
   'yandexbot',
+  'sogou',
+  'exabot',
+  'ia_archiver',
+
+  // Social media
   'facebookexternalhit',
+  'facebot',
   'twitterbot',
   'linkedinbot',
+  'pinterest',
+  'redditbot',
+  'vkshare',
+
+  // Messaging apps
   'whatsapp',
   'telegrambot',
   'discordbot',
   'slackbot',
-  'pinterest',
-  'redditbot',
+  'skypeuripreview',
+
+  // Other crawlers
   'embedly',
   'quora link preview',
   'showyoubot',
   'outbrain',
   'rogerbot',
-  'vkshare'
+  'w3c_validator',
+
+  // Testing tools (for debugging)
+  'opengraph',
+  'metatags',
+  'prerender',
+  'headless',
+  'phantom',
+  'selenium'
 ]
 
 const CMS_BASE_URL = 'https://cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master'
@@ -46,9 +67,11 @@ function isCrawler(userAgent: string): boolean {
 
 async function fetchFirstBlogPost(): Promise<BlogPost | null> {
   try {
+    console.log('[SEO Middleware] Fetching first blog post from CMS...')
     const response = await fetch(`${CMS_BASE_URL}/entries?content_type=blog&order=-fields.publishedDate&limit=1`)
 
     if (!response.ok) {
+      console.log('[SEO Middleware] CMS response not ok:', response.status)
       return null
     }
 
@@ -74,6 +97,7 @@ async function fetchFirstBlogPost(): Promise<BlogPost | null> {
     }
 
     if (!data.items || data.items.length === 0) {
+      console.log('[SEO Middleware] No blog posts found')
       return null
     }
 
@@ -94,7 +118,7 @@ async function fetchFirstBlogPost(): Promise<BlogPost | null> {
       }
     }
 
-    return {
+    const blogPost = {
       title: fields?.title || 'Decentraland',
       description: fields?.description || 'Stay up to date with Decentraland announcements, updates, community highlights, and more.',
       image: {
@@ -103,8 +127,11 @@ async function fetchFirstBlogPost(): Promise<BlogPost | null> {
         height: imageHeight
       }
     }
+
+    console.log('[SEO Middleware] Fetched post:', blogPost.title)
+    return blogPost
   } catch (error) {
-    console.error('Error fetching blog post:', error)
+    console.error('[SEO Middleware] Error fetching blog post:', error)
     return null
   }
 }
@@ -158,10 +185,20 @@ export const onRequest: PagesFunction = async (context) => {
   const userAgent = request.headers.get('user-agent') || ''
   const url = new URL(request.url)
 
-  // Only intercept for blog routes and crawlers
-  if (!isCrawler(userAgent) || !url.pathname.startsWith('/blog')) {
+  console.log('[SEO Middleware] Request:', url.pathname, '| User-Agent:', userAgent.substring(0, 100))
+
+  // Check if this is a crawler or a request to /blog with ?seo=true for testing
+  const isCrawlerRequest = isCrawler(userAgent)
+  const isSEOTest = url.searchParams.get('seo') === 'true'
+  const isBlogRoute = url.pathname === '/blog' || url.pathname === '/blog/'
+
+  // Only intercept for blog routes when it's a crawler OR testing with ?seo=true
+  if (!isBlogRoute || (!isCrawlerRequest && !isSEOTest)) {
+    console.log('[SEO Middleware] Skipping - not a crawler or not blog route')
     return next()
   }
+
+  console.log('[SEO Middleware] Intercepting request for SEO')
 
   try {
     // Get the original response
@@ -174,14 +211,17 @@ export const onRequest: PagesFunction = async (context) => {
     // Generate HTML with correct meta tags
     const html = generateHTML(post, originalHTML, request.url)
 
+    console.log('[SEO Middleware] Serving modified HTML with SEO tags')
+
     return new Response(html, {
       headers: {
         'content-type': 'text/html;charset=UTF-8',
-        'cache-control': 'public, max-age=3600' // Cache for 1 hour
+        'cache-control': 'public, max-age=3600', // Cache for 1 hour
+        'x-seo-middleware': 'active' // Header to verify middleware is working
       }
     })
   } catch (error) {
-    console.error('Middleware error:', error)
+    console.error('[SEO Middleware] Error:', error)
     return next()
   }
 }
