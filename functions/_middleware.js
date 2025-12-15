@@ -111,30 +111,88 @@ function generateHTML(post, originalHTML, url) {
   return html
 }
 
-export async function onRequest(context) {
-  const { request, next, env } = context
+function isStaticAsset(pathname) {
+  // Check if the request is for a static asset
+  const staticExtensions = [
+    '.js',
+    '.css',
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.gif',
+    '.svg',
+    '.ico',
+    '.woff',
+    '.woff2',
+    '.ttf',
+    '.otf',
+    '.json',
+    '.xml',
+    '.txt',
+    '.map'
+  ]
+  return staticExtensions.some((ext) => pathname.endsWith(ext)) || pathname.startsWith('/assets/')
+}
+
+async function serveSPAFallback(env, request) {
+  const url = new URL(request.url)
+
+  // First try to serve the requested asset
+  const assetResponse = await env.ASSETS.fetch(request)
+  if (assetResponse.status !== 404) {
+    console.log('[Middleware] Asset found:', url.pathname)
+    return assetResponse
+  }
+
+  // If not found, serve index.html for SPA routing
+  console.log('[Middleware] SPA fallback for:', url.pathname)
+  const indexRequest = new Request(new URL('/index.html', request.url).toString())
+  const indexResponse = await env.ASSETS.fetch(indexRequest)
+
+  return new Response(indexResponse.body, {
+    status: 200,
+    headers: {
+      'content-type': 'text/html;charset=UTF-8',
+      'cache-control': 'no-cache'
+    }
+  })
+}
+
+async function onRequest(context) {
+  const { request, env } = context
   const userAgent = request.headers.get('user-agent') || ''
   const url = new URL(request.url)
 
   console.log('[Middleware] Request:', url.pathname)
 
+  // For static assets, try to serve them directly
+  if (isStaticAsset(url.pathname)) {
+    console.log('[Middleware] Static asset:', url.pathname)
+    const response = await env.ASSETS.fetch(request)
+    if (response.status !== 404) {
+      return response
+    }
+  }
+
   // Check conditions for SEO interception
   const isCrawlerRequest = isCrawler(userAgent)
   const isSEOTest = url.searchParams.get('seo') === 'true'
-  const isBlogRoute = url.pathname === '/blog' || url.pathname === '/blog/'
+  const isBlogRoute = url.pathname === '/blog' || url.pathname === '/blog/' || url.pathname.startsWith('/blog/')
 
-  // For crawlers or SEO test on blog route, intercept and modify HTML
+  console.log('[Middleware] isCrawler:', isCrawlerRequest, 'isSEOTest:', isSEOTest, 'isBlogRoute:', isBlogRoute)
+
+  // For crawlers or SEO test on blog routes, intercept and modify HTML
   if (isBlogRoute && (isCrawlerRequest || isSEOTest)) {
     console.log('[Middleware] SEO interception for:', url.pathname)
 
     try {
-      // Fetch the index.html using ASSETS binding (not fetch() which causes infinite loop)
+      // Fetch the index.html using ASSETS binding
       const assetRequest = new Request(new URL('/index.html', request.url).toString())
       const response = await env.ASSETS.fetch(assetRequest)
 
       if (!response.ok) {
         console.log('[Middleware] Failed to fetch index.html')
-        return next()
+        return serveSPAFallback(env, request)
       }
 
       const originalHTML = await response.text()
@@ -151,10 +209,12 @@ export async function onRequest(context) {
       })
     } catch (error) {
       console.error('[Middleware] Error:', error)
-      return next()
+      return serveSPAFallback(env, request)
     }
   }
 
-  // For all other requests, pass through
-  return next()
+  // For all other requests, serve SPA fallback (index.html)
+  return serveSPAFallback(env, request)
 }
+
+export { onRequest }
