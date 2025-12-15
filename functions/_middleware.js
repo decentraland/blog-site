@@ -89,7 +89,7 @@ function generateHTML(post, originalHTML, url) {
 }
 
 export async function onRequest(context) {
-  const { request, next } = context
+  const { request, next, env } = context
   const userAgent = request.headers.get('user-agent') || ''
   const url = new URL(request.url)
 
@@ -105,9 +105,9 @@ export async function onRequest(context) {
     console.log('[Middleware] SEO interception for:', url.pathname)
 
     try {
-      // Fetch the index.html directly
-      const assetUrl = new URL('/index.html', request.url)
-      const response = await fetch(assetUrl.toString())
+      // Fetch the index.html using ASSETS binding (not fetch() which causes infinite loop)
+      const assetRequest = new Request(new URL('/index.html', request.url).toString())
+      const response = await env.ASSETS.fetch(assetRequest)
 
       if (!response.ok) {
         console.log('[Middleware] Failed to fetch index.html')

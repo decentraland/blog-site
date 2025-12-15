@@ -3,25 +3,32 @@
 // Equivalent to _redirects: /* /index.html 200
 
 export async function onRequest(context) {
-  const { request } = context
+  const { request, env } = context
   const url = new URL(request.url)
 
-  console.log('[SPA Fallback] Serving index.html for:', url.pathname)
+  console.log('[SPA Fallback] Request for:', url.pathname)
 
   try {
-    // Fetch the index.html
-    const assetUrl = new URL('/index.html', request.url)
-    const response = await fetch(assetUrl.toString())
+    // First, try to serve the requested asset
+    const assetResponse = await env.ASSETS.fetch(request)
 
-    if (!response.ok) {
-      return new Response('Not Found', { status: 404 })
+    // If the asset exists (not 404), return it
+    if (assetResponse.status !== 404) {
+      console.log('[SPA Fallback] Asset found:', url.pathname)
+      return assetResponse
     }
 
-    const html = await response.text()
+    // If asset not found, serve index.html for SPA routing
+    console.log('[SPA Fallback] Serving index.html for:', url.pathname)
+    const indexRequest = new Request(new URL('/index.html', request.url).toString())
+    const indexResponse = await env.ASSETS.fetch(indexRequest)
 
-    return new Response(html, {
+    // Return with correct content type
+    return new Response(indexResponse.body, {
+      status: 200,
       headers: {
-        'content-type': 'text/html;charset=UTF-8'
+        'content-type': 'text/html;charset=UTF-8',
+        'cache-control': 'no-cache'
       }
     })
   } catch (error) {
