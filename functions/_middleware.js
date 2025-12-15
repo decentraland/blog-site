@@ -1,5 +1,6 @@
-// Cloudflare Pages Function - Middleware for SEO
+// Cloudflare Pages Function - Middleware for SEO and SPA routing
 // This intercepts requests from crawlers and serves pre-rendered HTML with correct meta tags
+// Also handles SPA routing fallback (replaces _redirects)
 
 const CRAWLER_USER_AGENTS = [
   'googlebot',
@@ -92,34 +93,44 @@ export async function onRequest(context) {
   const userAgent = request.headers.get('user-agent') || ''
   const url = new URL(request.url)
 
-  console.log('[SEO] Request:', url.pathname, '| UA:', userAgent.substring(0, 50))
+  console.log('[Middleware] Request:', url.pathname)
 
-  // Check conditions
+  // Check conditions for SEO interception
   const isCrawlerRequest = isCrawler(userAgent)
   const isSEOTest = url.searchParams.get('seo') === 'true'
   const isBlogRoute = url.pathname === '/blog' || url.pathname === '/blog/'
 
-  if (!isBlogRoute || (!isCrawlerRequest && !isSEOTest)) {
-    return next()
-  }
+  // For crawlers or SEO test on blog route, intercept and modify HTML
+  if (isBlogRoute && (isCrawlerRequest || isSEOTest)) {
+    console.log('[Middleware] SEO interception for:', url.pathname)
 
-  console.log('[SEO] Intercepting for SEO')
+    try {
+      // Fetch the index.html directly
+      const assetUrl = new URL('/index.html', request.url)
+      const response = await fetch(assetUrl.toString())
 
-  try {
-    const response = await next()
-    const originalHTML = await response.text()
-    const post = await fetchFirstBlogPost()
-    const html = generateHTML(post, originalHTML, request.url)
-
-    return new Response(html, {
-      headers: {
-        'content-type': 'text/html;charset=UTF-8',
-        'cache-control': 'public, max-age=3600',
-        'x-seo-middleware': 'active'
+      if (!response.ok) {
+        console.log('[Middleware] Failed to fetch index.html')
+        return next()
       }
-    })
-  } catch (error) {
-    console.error('[SEO] Error:', error)
-    return next()
+
+      const originalHTML = await response.text()
+      const post = await fetchFirstBlogPost()
+      const html = generateHTML(post, originalHTML, request.url)
+
+      return new Response(html, {
+        headers: {
+          'content-type': 'text/html;charset=UTF-8',
+          'cache-control': 'public, max-age=3600',
+          'x-seo-middleware': 'active'
+        }
+      })
+    } catch (error) {
+      console.error('[Middleware] Error:', error)
+      return next()
+    }
   }
+
+  // For all other requests, pass through
+  return next()
 }
