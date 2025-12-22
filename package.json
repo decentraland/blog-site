@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@dcl/hooks": "^0.2.0",
-    "@dcl/schemas": "^20.2.0",
+    "@dcl/schemas": "^20.5.0",
     "@dcl/ui-env": "^1.5.1",
     "@reduxjs/toolkit": "^2.9.2",
     "algoliasearch": "^5.41.0",
