@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import { Typography } from 'decentraland-ui2'
+import { useImageWithLoading } from '../../../hooks/useImageWithLoading'
 import type { PostCardProps } from './PostCard.types'
 import {
   CardContainer,
@@ -19,39 +19,7 @@ import {
 
 const PostCard = (props: PostCardProps) => {
   const { post, loading } = props
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const imageRef = useRef<HTMLImageElement | null>(null)
-
-  // Preload image and track when it's ready
-  useEffect(() => {
-    if (!post?.image?.url) {
-      return
-    }
-
-    // Check if image is already cached
-    const img = new window.Image()
-    imageRef.current = img
-
-    // If complete is true immediately after setting src, image is cached
-    img.src = post.image.url
-
-    if (img.complete) {
-      setImageLoaded(true)
-      return
-    }
-
-    // Otherwise wait for load
-    setImageLoaded(false)
-    img.onload = () => setImageLoaded(true)
-    img.onerror = () => setImageLoaded(true)
-
-    return () => {
-      if (imageRef.current) {
-        imageRef.current.onload = null
-        imageRef.current.onerror = null
-      }
-    }
-  }, [post?.image?.url])
+  const imageLoaded = useImageWithLoading(post?.image?.url)
 
   // Full skeleton when loading prop is true (no data yet)
   if (loading) {
