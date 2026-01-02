@@ -1,5 +1,6 @@
 import { Document } from '@contentful/rich-text-types'
-import { format } from 'date-fns'
+import { formatUtcDate } from '../../shared/utils/date'
+import { locations } from '../../shared/utils/locations'
 import { slugify } from '../../shared/utils/string'
 import type { CMSEntry } from './cms.types'
 import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset } from '../../shared/types/blog.domain'
@@ -160,7 +161,6 @@ function mapBlogPost(entry: CMSEntry | null | undefined): BlogPost | null {
   if (!slug) {
     return null
   }
-
   const publishedDate = entry.fields.publishedDate as string | undefined
   const body = entry.fields.body as Document | undefined
 
@@ -169,12 +169,12 @@ function mapBlogPost(entry: CMSEntry | null | undefined): BlogPost | null {
     slug,
     title,
     description: (entry.fields.description as string | undefined) || '',
-    publishedDate: publishedDate ? format(new Date(publishedDate), 'MMM dd, yyyy') : '',
+    publishedDate: formatUtcDate(publishedDate),
     body: body || ({} as Document),
     image,
     category,
     author,
-    url: '' // TODO: add this after adding the blog post page -> locations.blog(category.slug, slug)
+    url: locations.blog(category.slug, slug)
   }
 }
 

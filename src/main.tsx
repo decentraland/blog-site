@@ -5,6 +5,8 @@ import { setupListeners } from '@reduxjs/toolkit/query'
 import * as ReactDOM from 'react-dom/client'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
 import { store } from './app/store'
+import { blogClient } from './features/blog/blog.client'
+import { initializeHelpers } from './features/blog/blog.helpers'
 import { router } from './routes'
 
 declare global {
@@ -15,6 +17,14 @@ declare global {
 
 // Setup RTK Query listeners for refetchOnFocus/refetchOnReconnect behaviors
 setupListeners(store.dispatch)
+
+// Initialize helpers with store reference (for accessing RTK Query cache)
+initializeHelpers(store)
+
+// Preload categories and authors into RTK Query cache
+// This improves initial load time by having data ready when needed
+store.dispatch(blogClient.endpoints.getBlogCategories.initiate())
+store.dispatch(blogClient.endpoints.getBlogAuthors.initiate())
 
 // Register Service Worker for persistent HTTP cache
 // Note: Service Worker only works in production or when served over HTTPS

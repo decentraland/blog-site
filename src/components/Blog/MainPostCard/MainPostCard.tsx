@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Typography } from 'decentraland-ui2'
+import { useImageWithLoading } from '../../../hooks/useImageWithLoading'
 import type { MainPostCardProps } from './MainPostCard.types'
 import {
   CardContainer,
@@ -21,8 +21,11 @@ import {
   TitleLink
 } from './MainPostCard.styled'
 
-const MainPostCard = React.memo((props: MainPostCardProps) => {
+const MainPostCard = (props: MainPostCardProps) => {
   const { post, loading } = props
+  const imageLoaded = useImageWithLoading(post?.image?.url)
+
+  // Full skeleton when loading prop is true (no data yet)
   if (loading) {
     return (
       <CardContainer>
@@ -45,31 +48,31 @@ const MainPostCard = React.memo((props: MainPostCardProps) => {
     )
   }
 
-  if (!post) {
-    return null
-  }
-
   return (
     <CardContainer>
-      <CardImageLink to={post.url}>
-        <CardImage $imageUrl={post.image.url} />
-      </CardImageLink>
+      {imageLoaded ? (
+        <CardImageLink to={post!.url}>
+          <CardImage $imageUrl={post!.image.url} />
+        </CardImageLink>
+      ) : (
+        <LoadingImage variant="rectangular" />
+      )}
       <CardInfo>
         <MetaBox>
-          <DateText>{post.publishedDate}</DateText>
+          <DateText>{post!.publishedDate}</DateText>
           <span>
-            <CategoryLink to={post.category.url}>{post.category.title}</CategoryLink>
+            <CategoryLink to={post!.category.url}>{post!.category.title}</CategoryLink>
           </span>
         </MetaBox>
-        <TitleLink to={post.url}>
+        <TitleLink to={post!.url}>
           <Typography variant="h3" component="h2">
-            {post.title}
+            {post!.title}
           </Typography>
         </TitleLink>
-        <Description>{post.description}</Description>
+        <Description>{post!.description}</Description>
       </CardInfo>
     </CardContainer>
   )
-})
+}
 
 export { MainPostCard }

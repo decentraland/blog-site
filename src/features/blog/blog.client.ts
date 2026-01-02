@@ -1,4 +1,4 @@
-import { fetchEntries, fetchFromCMS, resolveCategoryLink } from './blog.helpers'
+import { resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost } from './blog.mappers'
 import { cmsApi } from '../../services/api'
 import type {
@@ -11,17 +11,66 @@ import type {
 import type { CMSEntry, CMSListResponse } from './cms.types'
 import type { BlogAuthor, BlogCategory, BlogPost, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 
+// Helper to resolve all references (category, author, image) in a CMS entry
+const resolveEntryReferences = async (entry: CMSEntry): Promise<CMSEntry> => {
+  const resolvedEntry = { ...entry, fields: { ...entry.fields } }
+
+  // Resolve all references in parallel for better performance
+  const [category, author, image] = await Promise.all([
+    resolvedEntry.fields.category ? resolveCategoryLink(resolvedEntry.fields.category) : undefined,
+    resolvedEntry.fields.author ? resolveAuthorLink(resolvedEntry.fields.author) : undefined,
+    resolvedEntry.fields.image ? resolveAssetLink(resolvedEntry.fields.image) : undefined
+  ])
+
+  if (category) resolvedEntry.fields.category = category
+  if (author) resolvedEntry.fields.author = author
+  if (image) resolvedEntry.fields.image = image
+
+  return resolvedEntry
+}
+
+// Helper to resolve only image references (for categories/authors that don't have nested refs)
+const resolveImageOnly = async (entry: CMSEntry): Promise<CMSEntry> => {
+  const resolvedEntry = { ...entry, fields: { ...entry.fields } }
+
+  if (resolvedEntry.fields.image) {
+    resolvedEntry.fields.image = await resolveAssetLink(resolvedEntry.fields.image)
+  }
+
+  return resolvedEntry
+}
+
+const normalizeCmsError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'object' && error !== null && 'error' in error) {
+    const msg = (error as { error?: unknown }).error
+    if (typeof msg === 'string') {
+      return msg
+    }
+  }
+  return 'Unknown error'
+}
+
 const blogClient = cmsApi.injectEndpoints({
   endpoints: (build) => ({
     getBlogPosts: build.query<PaginatedBlogPosts, GetBlogPostsParams>({
       serializeQueryArgs: ({ queryArgs }) => {
+        // Cache by category/author only - pagination is handled via merge
         return `posts-${queryArgs.category || 'all'}-${queryArgs.author || 'all'}`
       },
       merge: (currentCache, newItems, { arg }) => {
+        // For skip=0, only replace if cache is empty or we're explicitly refreshing
         if (arg.skip === 0) {
+          // If we have more posts in cache than what came back, keep the accumulated cache
+          if (currentCache.posts.length > newItems.posts.length) {
+            return currentCache
+          }
           return newItems
         }
 
+        // Merge new posts, avoiding duplicates
         const existingIds = new Set(currentCache.posts.map((p) => p.id))
         const newPosts = newItems.posts.filter((p) => !existingIds.has(p.id))
 
@@ -32,7 +81,9 @@ const blogClient = cmsApi.injectEndpoints({
         }
       },
       forceRefetch: ({ currentArg, previousArg }) => {
-        return currentArg?.skip !== previousArg?.skip
+        // Only refetch if skip changed AND we're requesting more data
+        if (!previousArg) return true
+        return currentArg?.skip !== previousArg?.skip && (currentArg?.skip ?? 0) > (previousArg?.skip ?? 0)
       },
       query: ({ category, author, limit = 20, skip = 0 }) => ({
         url: '/blog/posts',
@@ -40,17 +91,17 @@ const blogClient = cmsApi.injectEndpoints({
       }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { category, author, skip = 0 }) => {
         try {
-          const ids = listResponse.items.map((item) => item.sys.id)
           const totalAvailable = listResponse.total
 
-          const fullEntries = await fetchEntries(ids)
+          // The API response already includes all fields in each item,
+          // we just need to resolve the references (category, author, image)
+          const resolvedEntries = await Promise.all(listResponse.items.map((item) => resolveEntryReferences(item)))
 
-          const batchPosts = fullEntries
+          const batchPosts = resolvedEntries
             .map((entry) => {
               try {
-                const post = mapBlogPost(entry)
-                return post
-              } catch (error) {
+                return mapBlogPost(entry)
+              } catch {
                 return null
               }
             })
@@ -64,7 +115,7 @@ const blogClient = cmsApi.injectEndpoints({
             filteredPosts = filteredPosts.filter((post: BlogPost) => post.author.id === author)
           }
 
-          const hasMore = ids.length === 0 ? false : skip + ids.length < totalAvailable
+          const hasMore = listResponse.items.length === 0 ? false : skip + listResponse.items.length < totalAvailable
 
           return {
             posts: filteredPosts,
@@ -74,7 +125,7 @@ const blogClient = cmsApi.injectEndpoints({
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: normalizeCmsError(error)
           }
         }
       },
@@ -98,7 +149,12 @@ const blogClient = cmsApi.injectEndpoints({
           if (response.fields.category) {
             response.fields.category = await resolveCategoryLink(response.fields.category)
           }
-
+          if (response.fields.author) {
+            response.fields.author = await resolveAuthorLink(response.fields.author)
+          }
+          if (response.fields.image) {
+            response.fields.image = await resolveAssetLink(response.fields.image)
+          }
           const post = mapBlogPost(response)
 
           if (!post) {
@@ -112,7 +168,7 @@ const blogClient = cmsApi.injectEndpoints({
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: normalizeCmsError(error)
           }
         }
       },
@@ -123,13 +179,13 @@ const blogClient = cmsApi.injectEndpoints({
       query: () => ({ url: '/blog/categories' }),
       transformResponse: async (listResponse: CMSListResponse) => {
         try {
-          const ids = listResponse.items.map((item) => item.sys.id)
-          const fullEntries = await fetchEntries(ids)
-          return fullEntries.map((entry) => mapBlogCategory(entry)).filter((cat): cat is BlogCategory => cat !== null)
+          // Categories only have image references, resolve them in parallel
+          const resolvedEntries = await Promise.all(listResponse.items.map((item) => resolveImageOnly(item)))
+          return resolvedEntries.map((entry) => mapBlogCategory(entry)).filter((cat): cat is BlogCategory => cat !== null)
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: normalizeCmsError(error)
           }
         }
       },
@@ -153,10 +209,9 @@ const blogClient = cmsApi.injectEndpoints({
             }
           }
 
-          const response = await fetchFromCMS(`/entries/${categoryEntry.sys.id}`)
-          const entryResponse = response as CMSEntry
-
-          const category = mapBlogCategory(entryResponse)
+          // The API response already includes all fields, just resolve the image
+          const resolvedEntry = await resolveImageOnly(categoryEntry)
+          const category = mapBlogCategory(resolvedEntry)
 
           if (!category) {
             throw {
@@ -169,7 +224,7 @@ const blogClient = cmsApi.injectEndpoints({
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: normalizeCmsError(error)
           }
         }
       },
@@ -177,14 +232,13 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogPostBySlug: build.query<BlogPost, GetBlogPostBySlugParams>({
-      query: () => ({ url: '/blog/posts' }),
+      query: ({ categorySlug, postSlug }) => ({
+        url: '/blog/posts',
+        params: { slug: postSlug, category: categorySlug, limit: 1 }
+      }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { categorySlug, postSlug }) => {
         try {
-          const postEntry = listResponse.items.find((item) => {
-            const fields = item.fields as { slug?: string; title?: string }
-            const entrySlug = fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
-            return entrySlug === postSlug
-          })
+          const postEntry = listResponse.items[0]
 
           if (!postEntry) {
             throw {
@@ -193,14 +247,9 @@ const blogClient = cmsApi.injectEndpoints({
             }
           }
 
-          const response = await fetchFromCMS(`/entries/${postEntry.sys.id}`)
-          const entryResponse = response as CMSEntry
-
-          if (entryResponse.fields.category) {
-            entryResponse.fields.category = await resolveCategoryLink(entryResponse.fields.category)
-          }
-
-          const post = mapBlogPost(entryResponse)
+          // The API response already includes all fields, just resolve the references
+          const resolvedEntry = await resolveEntryReferences(postEntry)
+          const post = mapBlogPost(resolvedEntry)
 
           if (!post) {
             throw {
@@ -220,7 +269,7 @@ const blogClient = cmsApi.injectEndpoints({
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: normalizeCmsError(error)
           }
         }
       },
@@ -231,9 +280,9 @@ const blogClient = cmsApi.injectEndpoints({
       query: () => ({ url: '/blog/authors' }),
       transformResponse: async (listResponse: CMSListResponse) => {
         try {
-          const ids = listResponse.items.map((item) => item.sys.id)
-          const fullEntries = await fetchEntries(ids)
-          return fullEntries.map((entry) => mapBlogAuthor(entry)).filter((auth): auth is BlogAuthor => auth !== null)
+          // Authors only have image references, resolve them in parallel
+          const resolvedEntries = await Promise.all(listResponse.items.map((item) => resolveImageOnly(item)))
+          return resolvedEntries.map((entry) => mapBlogAuthor(entry)).filter((auth): auth is BlogAuthor => auth !== null)
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',

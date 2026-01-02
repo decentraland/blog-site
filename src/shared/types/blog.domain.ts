@@ -44,6 +44,14 @@ interface PaginatedBlogPosts {
   hasMore: boolean
 }
 
+// Placeholder for loading state in lists
+interface PlaceholderPost {
+  id: string
+  isPlaceholder: true
+}
+
+type PostOrPlaceholder = BlogPost | PlaceholderPost
+
 interface SearchResult {
   url: string
   image: string
@@ -51,4 +59,4 @@ interface SearchResult {
   description: string | JSX.Element[]
 }
 
-export type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts, SearchResult }
+export type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts, PlaceholderPost, PostOrPlaceholder, SearchResult }

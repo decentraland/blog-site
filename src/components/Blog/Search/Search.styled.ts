@@ -6,7 +6,10 @@ const SearchContainer = styled(Box, {
 })<{ $hasResults: boolean }>(({ theme, $hasResults }) => ({
   position: 'relative',
   width: 'auto',
-  zIndex: $hasResults ? theme.zIndex.modal : 1
+  zIndex: $hasResults ? theme.zIndex.modal : 1,
+  [theme.breakpoints.down('sm')]: {
+    width: '100%'
+  }
 }))
 
 const SearchOverlay = styled(Box)(({ theme }) => ({
@@ -22,7 +25,8 @@ const SearchOverlay = styled(Box)(({ theme }) => ({
 const SearchInputContent = styled(Box)(() => ({
   position: 'relative',
   display: 'flex',
-  alignItems: 'center'
+  alignItems: 'center',
+  width: '100%'
 }))
 
 const SearchInput = styled(Box)(({ theme }) => ({
