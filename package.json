@@ -40,7 +40,7 @@
     "algoliasearch": "^5.41.0",
     "contentful": "^11.8.7",
     "date-fns": "^4.1.0",
-    "decentraland-ui2": "^0.43.1",
+    "decentraland-ui2": "^0.44.1",
     "dotenv": "^17.2.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

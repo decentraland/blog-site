@@ -1,5 +1,5 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
-import { BlogPage } from '../pages/BlogPage'
+import { BlogPage } from './pages/BlogPage'
 
 export const router = createBrowserRouter([
   {

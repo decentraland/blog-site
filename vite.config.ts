@@ -8,11 +8,14 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     plugins: [react()],
+    build: {
+      chunkSizeWarningLimit: 1024
+    },
     ...(command === 'build' ? { base: envVariables.VITE_BASE_URL } : undefined),
     server: {
       proxy: {
         '/api/cms': {
-          target: 'https://cms.decentraland.org',
+          target: 'https://cms.decentraland.zone',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/cms/, '/spaces/ea2ybdmmn1kv/environments/master'),
           configure: (proxy) => {

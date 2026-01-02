@@ -14,113 +14,157 @@ const fetchFromCMS = async (endpoint: string, params?: CMSQueryParams): Promise<
     })
   }
 
-  const finalUrl = url.toString()
-
-  if (import.meta.env.DEV && endpoint.includes('/blog/posts')) {
-    console.log('[fetchFromCMS] Requesting URL:', finalUrl)
-  }
-
-  const response = await fetch(finalUrl)
+  const response = await fetch(url.toString())
 
   if (!response.ok) {
     throw new Error(`CMS API error: ${response.status} ${response.statusText}`)
   }
 
-  const json = await response.json()
-
-  if (import.meta.env.DEV && endpoint.includes('/blog/posts')) {
-    const listResponse = json as CMSListResponse
-    console.log('[fetchFromCMS] Response:', {
-      url: finalUrl,
-      total: listResponse.total,
-      itemsCount: listResponse.items.length,
-      firstItemId: listResponse.items[0]?.sys?.id,
-      lastItemId: listResponse.items[listResponse.items.length - 1]?.sys?.id
-    })
-  }
-
-  return json
+  return response.json()
 }
 
-// Category and asset caches - fetch once and reuse
-let categoriesCache: Promise<Map<string, CMSEntry>> | null = null
-const assetsCache = new Map<string, unknown>()
-const authorsCache = new Map<string, Promise<unknown>>()
+// ============================================================================
+// ASSET CACHE - Only for assets that are not in RTK Query
+// Assets are many and small, it makes sense to cache them in memory
+// ============================================================================
 
-const getCategoriesMap = async (): Promise<Map<string, CMSEntry>> => {
-  if (!categoriesCache) {
-    categoriesCache = (async () => {
-      try {
-        const listResponse = await fetchFromCMS('/blog/categories')
-        const listResponseTyped = listResponse as CMSListResponse
-        const ids = listResponseTyped.items.map((item) => item.sys.id)
+const assetsCache = new Map<string, CMSEntry>()
+const assetsCachePromises = new Map<string, Promise<CMSEntry>>()
 
-        const categoryPromises = ids.map(async (id) => {
-          const entry = await fetchFromCMS(`/entries/${id}`)
-          const cmsEntry = entry as CMSEntry
-
-          if (cmsEntry.fields.image) {
-            cmsEntry.fields.image = await resolveAssetLink(cmsEntry.fields.image)
-          }
-
-          return cmsEntry
-        })
-
-        const categories = await Promise.all(categoryPromises)
-        const map = new Map<string, CMSEntry>()
-
-        for (const category of categories) {
-          map.set(category.sys.id, category)
-        }
-
-        return map
-      } catch (error) {
-        return new Map()
-      }
-    })()
-  }
-
-  return categoriesCache
-}
-
-// Helper to resolve asset links
 const resolveAssetLink = async (value: unknown): Promise<unknown> => {
   const link = value as CMSReference
   if (link?.sys?.type === 'Link' && link.sys.linkType === 'Asset') {
-    if (assetsCache.has(link.sys.id)) {
-      return assetsCache.get(link.sys.id)
+    const assetId = link.sys.id
+
+    // Return from cache if available
+    if (assetsCache.has(assetId)) {
+      return assetsCache.get(assetId)
     }
 
-    try {
-      const asset = await fetchFromCMS(`/assets/${link.sys.id}`)
-      assetsCache.set(link.sys.id, asset)
-      return asset
-    } catch (error) {
-      return value
+    // If already fetching, wait for that promise
+    if (assetsCachePromises.has(assetId)) {
+      return assetsCachePromises.get(assetId)
     }
+
+    // Start fetching
+    const assetPromise = fetchFromCMS(`/assets/${assetId}`)
+      .then((asset) => {
+        const cmsAsset = asset as CMSEntry
+        assetsCache.set(assetId, cmsAsset)
+        assetsCachePromises.delete(assetId)
+        return cmsAsset
+      })
+      .catch(() => {
+        assetsCachePromises.delete(assetId)
+        return value as CMSEntry
+      })
+
+    assetsCachePromises.set(assetId, assetPromise as Promise<CMSEntry>)
+    return assetPromise
   }
+
   return value
 }
 
-// Helper to resolve category links using the category map
+// ============================================================================
+// CATEGORY RESOLVER - Uses RTK Query cache via store
+// ============================================================================
+
+// Store reference will be set by initializeHelpers
+let storeRef: { getState: () => unknown; dispatch: (action: unknown) => unknown } | null = null
+
+const initializeHelpers = (store: { getState: () => unknown; dispatch: (action: unknown) => unknown }) => {
+  storeRef = store
+}
+
+// Helper to get categories from RTK Query cache
+const getCategoriesFromCache = (): Map<string, CMSEntry> => {
+  if (!storeRef) {
+    return new Map()
+  }
+
+  const state = storeRef.getState() as { cmsApi?: { queries?: Record<string, { data?: CMSListResponse }> } }
+  const queries = state.cmsApi?.queries || {}
+
+  // Look for getBlogCategories query result
+  const categoriesQuery = Object.entries(queries).find(([key]) => key.startsWith('getBlogCategories'))
+
+  if (categoriesQuery && categoriesQuery[1]?.data) {
+    const items = categoriesQuery[1].data as unknown as CMSEntry[]
+    const map = new Map<string, CMSEntry>()
+    for (const item of items) {
+      if (item?.sys?.id) {
+        map.set(item.sys.id, item)
+      }
+    }
+    return map
+  }
+
+  return new Map()
+}
+
+// Helper to get authors from RTK Query cache
+const getAuthorsFromCache = (): Map<string, CMSEntry> => {
+  if (!storeRef) {
+    return new Map()
+  }
+
+  const state = storeRef.getState() as { cmsApi?: { queries?: Record<string, { data?: CMSListResponse }> } }
+  const queries = state.cmsApi?.queries || {}
+
+  // Look for getBlogAuthors query result
+  const authorsQuery = Object.entries(queries).find(([key]) => key.startsWith('getBlogAuthors'))
+
+  if (authorsQuery && authorsQuery[1]?.data) {
+    const items = authorsQuery[1].data as unknown as CMSEntry[]
+    const map = new Map<string, CMSEntry>()
+    for (const item of items) {
+      if (item?.sys?.id) {
+        map.set(item.sys.id, item)
+      }
+    }
+    return map
+  }
+
+  return new Map()
+}
+
 const resolveCategoryLink = async (value: unknown): Promise<unknown> => {
   const link = value as CMSReference
   const entry = value as CMSEntry
 
+  // If it's a Link reference, resolve from RTK Query cache
   if (link?.sys?.type === 'Link' && link.sys.linkType === 'Entry') {
-    const categoriesMap = await getCategoriesMap()
+    const categoriesMap = getCategoriesFromCache()
     const category = categoriesMap.get(link.sys.id)
     if (category) {
       return category
     }
+
+    // If not in cache, fetch directly (fallback)
+    try {
+      const fetched = await fetchFromCMS(`/entries/${link.sys.id}`)
+      const cmsEntry = fetched as CMSEntry
+      if (cmsEntry.fields?.image) {
+        cmsEntry.fields.image = await resolveAssetLink(cmsEntry.fields.image)
+      }
+      return cmsEntry
+    } catch {
+      return value
+    }
   }
 
+  // If it already has fields, it's already resolved
   if (entry?.sys?.id && entry?.fields) {
+    if (entry.fields.image) {
+      entry.fields.image = await resolveAssetLink(entry.fields.image)
+    }
     return value
   }
 
+  // If it has an ID but no fields, try to resolve from cache
   if (entry?.sys?.id) {
-    const categoriesMap = await getCategoriesMap()
+    const categoriesMap = getCategoriesFromCache()
     const category = categoriesMap.get(entry.sys.id)
     if (category) {
       return category
@@ -130,93 +174,53 @@ const resolveCategoryLink = async (value: unknown): Promise<unknown> => {
   return value
 }
 
-// Helper to resolve author links
+// ============================================================================
+// AUTHOR RESOLVER - Uses RTK Query cache via store
+// ============================================================================
+
 const resolveAuthorLink = async (value: unknown): Promise<unknown> => {
   const link = value as CMSReference
   const entry = value as CMSEntry
 
+  // If it's a Link reference, resolve from RTK Query cache
   if (link?.sys?.type === 'Link' && link.sys.linkType === 'Entry') {
-    if (authorsCache.has(link.sys.id)) {
-      return authorsCache.get(link.sys.id)
+    const authorsMap = getAuthorsFromCache()
+    const author = authorsMap.get(link.sys.id)
+    if (author) {
+      return author
     }
 
-    const authorPromise = (async () => {
-      try {
-        const entry = await fetchFromCMS(`/entries/${link.sys.id}`)
-        const cmsEntry = entry as CMSEntry
-
-        if (cmsEntry.fields.image) {
-          cmsEntry.fields.image = await resolveAssetLink(cmsEntry.fields.image)
-        }
-
-        return cmsEntry
-      } catch (error) {
-        return value
+    // If not in cache, fetch directly (fallback)
+    try {
+      const fetched = await fetchFromCMS(`/entries/${link.sys.id}`)
+      const cmsEntry = fetched as CMSEntry
+      if (cmsEntry.fields?.image) {
+        cmsEntry.fields.image = await resolveAssetLink(cmsEntry.fields.image)
       }
-    })()
-
-    authorsCache.set(link.sys.id, authorPromise)
-    return authorPromise
+      return cmsEntry
+    } catch {
+      return value
+    }
   }
 
+  // If it already has fields, just resolve the image if needed
   if (entry?.sys?.id && entry?.fields) {
-    return value
+    if (entry.fields.image) {
+      entry.fields.image = await resolveAssetLink(entry.fields.image)
+    }
+    return entry
   }
 
+  // If it has an ID but no fields, try to resolve from cache
   if (entry?.sys?.id) {
-    if (authorsCache.has(entry.sys.id)) {
-      return authorsCache.get(entry.sys.id)
+    const authorsMap = getAuthorsFromCache()
+    const author = authorsMap.get(entry.sys.id)
+    if (author) {
+      return author
     }
-
-    const authorPromise = (async () => {
-      try {
-        const fetchedEntry = await fetchFromCMS(`/entries/${entry.sys.id}`)
-        const cmsEntry = fetchedEntry as CMSEntry
-
-        if (cmsEntry.fields.image) {
-          cmsEntry.fields.image = await resolveAssetLink(cmsEntry.fields.image)
-        }
-
-        return cmsEntry
-      } catch (error) {
-        return value
-      }
-    })()
-
-    authorsCache.set(entry.sys.id, authorPromise)
-    return authorPromise
   }
 
   return value
 }
 
-// Helper function to fetch multiple entries in parallel
-const fetchEntries = async (ids: string[]) => {
-  const allPromises = ids.map(async (id) => {
-    try {
-      const response = await fetchFromCMS(`/entries/${id}`)
-      const entryResponse = response as CMSEntry
-
-      if (entryResponse.fields.category) {
-        entryResponse.fields.category = await resolveCategoryLink(entryResponse.fields.category)
-      }
-
-      if (entryResponse.fields.author) {
-        entryResponse.fields.author = await resolveAuthorLink(entryResponse.fields.author)
-      }
-
-      if (entryResponse.fields.image) {
-        entryResponse.fields.image = await resolveAssetLink(entryResponse.fields.image)
-      }
-
-      return entryResponse
-    } catch (error) {
-      return null
-    }
-  })
-
-  const results = await Promise.all(allPromises)
-  return results.filter((entry): entry is NonNullable<typeof entry> => entry !== null)
-}
-
-export { fetchEntries, fetchFromCMS, getCategoriesMap, resolveAssetLink, resolveAuthorLink, resolveCategoryLink }
+export { fetchFromCMS, initializeHelpers, resolveAssetLink, resolveAuthorLink, resolveCategoryLink }

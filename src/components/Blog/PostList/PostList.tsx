@@ -4,14 +4,20 @@ import { MainPostCard } from '../MainPostCard'
 import { PostCard } from '../PostCard'
 import type { PostListProps } from './PostList.types'
 import { PostListWrapper } from './PostList.styled'
+import type { BlogPost } from '../../../shared/types/blog.domain'
+
+// Type guard to check if a post is a placeholder
+const isPlaceholder = (post: { id: string; isPlaceholder?: boolean }): post is { id: string; isPlaceholder: true } => {
+  return 'isPlaceholder' in post && post.isPlaceholder === true
+}
 
 const PostList = React.memo((props: PostListProps) => {
-  const { posts, loading, hasMainPost = false, skeletonCount = 0, showLoadingAtEnd = false } = props
+  const { posts, loading, hasMainPost = false } = props
   const isBigScreen = useMediaQuery({ minWidth: 1096 })
 
+  // Initial loading with no posts at all
   if (loading && posts.length === 0) {
-    // Initial loading - show only skeletons
-    const count = skeletonCount || (hasMainPost ? 7 : 6)
+    const count = hasMainPost ? 7 : 6
 
     return (
       <PostListWrapper>
@@ -30,20 +36,25 @@ const PostList = React.memo((props: PostListProps) => {
     return null
   }
 
+  // Get first real post for MainPostCard (if applicable)
+  const firstRealPost = posts.find((p) => !isPlaceholder(p)) as BlogPost | undefined
+
   return (
     <PostListWrapper>
-      {hasMainPost && isBigScreen && posts.length > 0 && <MainPostCard post={posts[0]} />}
-      {posts.map((post, index) => {
-        // Skip the first post if we're showing it as MainPostCard
-        if (hasMainPost && index === 0 && isBigScreen) {
+      {hasMainPost && isBigScreen && firstRealPost && <MainPostCard post={firstRealPost} />}
+      {posts.map((post) => {
+        // Skip the first real post if we're showing it as MainPostCard
+        if (hasMainPost && isBigScreen && !isPlaceholder(post) && post === firstRealPost) {
           return null
         }
+
+        // Render placeholder as loading skeleton
+        if (isPlaceholder(post)) {
+          return <PostCard key={post.id} loading />
+        }
+
         return <PostCard key={post.id} post={post} />
       })}
-      {/* Show loading skeletons at the end */}
-      {showLoadingAtEnd &&
-        skeletonCount > 0 &&
-        Array.from(Array(skeletonCount), (_, index) => <PostCard key={`skeleton-end-${index}`} loading />)}
     </PostListWrapper>
   )
 })
