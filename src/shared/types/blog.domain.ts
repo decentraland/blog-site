@@ -32,6 +32,7 @@ interface BlogPost {
   description: string
   publishedDate: string
   body: Document
+  bodyAssets: Record<string, ContentfulAsset>
   image: ContentfulAsset
   category: BlogCategory
   author: BlogAuthor
