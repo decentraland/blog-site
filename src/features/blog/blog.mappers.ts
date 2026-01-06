@@ -171,6 +171,7 @@ function mapBlogPost(entry: CMSEntry | null | undefined): BlogPost | null {
     description: (entry.fields.description as string | undefined) || '',
     publishedDate: formatUtcDate(publishedDate),
     body: body || ({} as Document),
+    bodyAssets: {},
     image,
     category,
     author,

@@ -1,5 +1,6 @@
+import { BLOCKS } from '@contentful/rich-text-types'
 import { resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
-import { mapBlogAuthor, mapBlogCategory, mapBlogPost } from './blog.mappers'
+import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
 import { cmsApi } from '../../services/api'
 import type {
   GetBlogAuthorParams,
@@ -9,7 +10,7 @@ import type {
   GetBlogPostsParams
 } from './blog.types'
 import type { CMSEntry, CMSListResponse } from './cms.types'
-import type { BlogAuthor, BlogCategory, BlogPost, PaginatedBlogPosts } from '../../shared/types/blog.domain'
+import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 
 // Helper to resolve all references (category, author, image) in a CMS entry
 const resolveEntryReferences = async (entry: CMSEntry): Promise<CMSEntry> => {
@@ -51,6 +52,56 @@ const normalizeCmsError = (error: unknown): string => {
     }
   }
   return 'Unknown error'
+}
+
+interface DocumentNode {
+  nodeType: string
+  data?: { target?: { sys?: { id?: string } } }
+  content?: DocumentNode[]
+}
+
+// Extract all embedded asset IDs from a rich text document
+const extractEmbeddedAssetIds = (node: DocumentNode): string[] => {
+  const ids: string[] = []
+
+  if (node.nodeType === BLOCKS.EMBEDDED_ASSET && node.data?.target?.sys?.id) {
+    ids.push(node.data.target.sys.id)
+  }
+
+  if (node.content) {
+    for (const child of node.content) {
+      ids.push(...extractEmbeddedAssetIds(child))
+    }
+  }
+
+  return ids
+}
+
+// Resolve body assets and return a map of id -> ContentfulAsset
+const resolveBodyAssets = async (body: DocumentNode): Promise<Record<string, ContentfulAsset>> => {
+  const assetIds = extractEmbeddedAssetIds(body)
+  const uniqueIds = [...new Set(assetIds)]
+
+  if (uniqueIds.length === 0) {
+    return {}
+  }
+
+  const resolvedAssets = await Promise.all(
+    uniqueIds.map(async (id) => {
+      const resolved = await resolveAssetLink({ sys: { type: 'Link', linkType: 'Asset', id } })
+      const asset = mapContentfulAsset(resolved as CMSEntry)
+      return { id, asset }
+    })
+  )
+
+  const assetsMap: Record<string, ContentfulAsset> = {}
+  for (const { id, asset } of resolvedAssets) {
+    if (asset) {
+      assetsMap[id] = asset
+    }
+  }
+
+  return assetsMap
 }
 
 const blogClient = cmsApi.injectEndpoints({
@@ -164,6 +215,11 @@ const blogClient = cmsApi.injectEndpoints({
             }
           }
 
+          // Resolve embedded assets in the body
+          if (post.body) {
+            post.bodyAssets = await resolveBodyAssets(post.body as unknown as DocumentNode)
+          }
+
           return post
         } catch (error) {
           throw {
@@ -263,6 +319,11 @@ const blogClient = cmsApi.injectEndpoints({
               status: 'CUSTOM_ERROR',
               error: `Post found but category slug mismatch. Expected "${categorySlug}", got "${post.category.slug}"`
             }
+          }
+
+          // Resolve embedded assets in the body
+          if (post.body) {
+            post.bodyAssets = await resolveBodyAssets(post.body as unknown as DocumentNode)
           }
 
           return post
