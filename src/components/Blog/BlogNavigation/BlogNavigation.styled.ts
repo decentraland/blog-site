@@ -11,7 +11,10 @@ const NavbarContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   borderBottom: '1px solid',
   borderColor: theme.palette.divider,
-  display: 'flex'
+  display: 'flex',
+  '@media (max-width: 1450px)': {
+    height: 'auto'
+  }
 }))
 
 const NavbarWrapper = styled(Box)(({ theme }) => ({
@@ -20,10 +23,8 @@ const NavbarWrapper = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
   alignItems: 'center',
   width: '100%',
-  maxWidth: '1200px',
   margin: '0 auto',
   padding: `0 ${theme.spacing(3)}`,
-
   '@media (max-width: 1450px)': {
     flexDirection: 'column-reverse',
     alignItems: 'flex-start'

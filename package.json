@@ -47,6 +47,7 @@
     "react-redux": "^9.2.0",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.9.4",
+    "react-twitter-embed": "^4.0.4",
     "reselect": "^5.1.1"
   },
   "devDependencies": {

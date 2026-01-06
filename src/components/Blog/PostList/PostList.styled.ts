@@ -4,7 +4,6 @@ const PostListWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexWrap: 'wrap',
   justifyContent: 'flex-start',
-  paddingTop: theme.spacing(5),
   paddingBottom: theme.spacing(2.5),
   '& > div:nth-of-type(3n)': {
     marginRight: theme.spacing(4)
