@@ -1,7 +1,4 @@
 {
-  "CONTENTFUL_PREVIEW_TOKEN": "",
-  "CONTENTFUL_PREVIEW_URL": "https://preview.contentful.com",
-  "CONTENTFUL_SPACE_ID": "ea2ybdmmn1kv",
   "ALGOLIA_APP_ID": "1H67SAMO2T",
   "ALGOLIA_API_KEY": "d7f493e3a24525b7021451b81b1d294a",
   "ALGOLIA_BLOG_INDEX": "blog_contentful_prd",

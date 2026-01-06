@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { RichText } from '../components/Blog/RichText'
 import { PageLayout } from '../components/PageLayout'
-import { getEnv } from '../config'
 import { useGetBlogPostPreviewQuery } from '../features/blog/blog.client'
 import { formatUtcDate } from '../shared/utils/date'
 import {
@@ -23,6 +22,9 @@ import {
 } from './PostPage.styled'
 import { AuthorContainer, CategoryText, PreviewBanner } from './PreviewPage.styled'
 
+const CONTENTFUL_PREVIEW_URL = 'https://preview.contentful.com'
+const CONTENTFUL_SPACE_ID = 'ea2ybdmmn1kv'
+
 export const PreviewPage = () => {
   const [searchParams] = useSearchParams()
 
@@ -31,8 +33,8 @@ export const PreviewPage = () => {
       id: searchParams.get('contentful_id') ?? '',
       env: searchParams.get('contentful_env') ?? '',
       token: searchParams.get('token') ?? '',
-      previewBaseUrl: getEnv('CONTENTFUL_PREVIEW_URL') ?? 'https://preview.contentful.com',
-      spaceId: getEnv('CONTENTFUL_SPACE_ID') ?? ''
+      previewBaseUrl: CONTENTFUL_PREVIEW_URL,
+      spaceId: CONTENTFUL_SPACE_ID
     }),
     [searchParams]
   )
