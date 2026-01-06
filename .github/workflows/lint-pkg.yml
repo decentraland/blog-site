@@ -1,0 +1,15 @@
+name: Lint Package.json
+
+on: [push]
+
+jobs:
+  lint-pkg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint package.json
+        run: |
+          npx --yes npm-package-json-lint@9 .
+          echo "✅ package.json lint passed"
+

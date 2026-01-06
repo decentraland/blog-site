@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "prefer-absolute-version-dependencies": "warning",
+    "prefer-absolute-version-devDependencies": "warning",
+    "no-file-dependencies": "error",
+    "no-git-dependencies": "error",
+    "no-duplicate-properties": "error",
+    "prefer-property-order": [
+      "error",
+      [
+        "name",
+        "version",
+        "description",
+        "main",
+        "module",
+        "types",
+        "type",
+        "exports",
+        "files",
+        "scripts",
+        "dependencies",
+        "peerDependencies",
+        "devDependencies",
+        "repository",
+        "keywords",
+        "author",
+        "license",
+        "bugs",
+        "homepage",
+        "engines",
+        "overrides",
+        "publishConfig"
+      ]
+    ]
+  }
+}
