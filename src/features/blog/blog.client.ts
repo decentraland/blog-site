@@ -1,5 +1,5 @@
 import { BLOCKS } from '@contentful/rich-text-types'
-import { resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
+import { cacheResolvedPost, getResolvedPostFromCache, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
 import { cmsApi } from '../../services/api'
 import type {
@@ -14,7 +14,18 @@ import type { CMSEntry, CMSListResponse } from './cms.types'
 import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 
 // Helper to resolve all references (category, author, image) in a CMS entry
+// Uses cache to avoid re-resolving posts that were already fetched in other queries
 const resolveEntryReferences = async (entry: CMSEntry): Promise<CMSEntry> => {
+  const entryId = entry?.sys?.id
+
+  // Check if this post is already resolved and cached
+  if (entryId) {
+    const cachedPost = getResolvedPostFromCache(entryId)
+    if (cachedPost) {
+      return cachedPost
+    }
+  }
+
   const resolvedEntry = { ...entry, fields: { ...entry.fields } }
 
   // Resolve all references in parallel for better performance
@@ -27,6 +38,9 @@ const resolveEntryReferences = async (entry: CMSEntry): Promise<CMSEntry> => {
   if (category) resolvedEntry.fields.category = category
   if (author) resolvedEntry.fields.author = author
   if (image) resolvedEntry.fields.image = image
+
+  // Cache the resolved post for future use
+  cacheResolvedPost(resolvedEntry)
 
   return resolvedEntry
 }
@@ -129,7 +143,8 @@ const blogClient = cmsApi.injectEndpoints({
         return {
           posts: [...currentCache.posts, ...newPosts],
           total: newItems.total,
-          hasMore: newItems.hasMore
+          hasMore: newItems.hasMore,
+          nextCmsSkip: newItems.nextCmsSkip // Always use the latest CMS skip
         }
       },
       forceRefetch: ({ currentArg, previousArg }) => {
@@ -167,12 +182,14 @@ const blogClient = cmsApi.injectEndpoints({
             filteredPosts = filteredPosts.filter((post: BlogPost) => post.author.id === author)
           }
 
-          const hasMore = listResponse.items.length === 0 ? false : skip + listResponse.items.length < totalAvailable
+          const nextCmsSkip = skip + listResponse.items.length
+          const hasMore = listResponse.items.length === 0 ? false : nextCmsSkip < totalAvailable
 
           return {
             posts: filteredPosts,
             total: totalAvailable,
-            hasMore
+            hasMore,
+            nextCmsSkip // Track the CMS-level skip for proper pagination
           }
         } catch (error) {
           throw {
@@ -254,8 +271,8 @@ const blogClient = cmsApi.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
         try {
           const categoryEntry = listResponse.items.find((item) => {
-            const fields = item.fields as { slug?: string; title?: string }
-            const entrySlug = fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
+            const fields = item.fields as { id?: string; slug?: string; title?: string }
+            const entrySlug = fields.id || fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
             return entrySlug === slug
           })
 

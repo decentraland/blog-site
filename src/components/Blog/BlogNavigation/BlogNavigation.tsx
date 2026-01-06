@@ -44,7 +44,7 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
               </CategoryItem>
               {categories.map((category) => (
                 <CategoryItem key={category.id}>
-                  <CategoryLink to={`/blog/${category.id}`} $active={isActive(`/blog/${category.id}`)}>
+                  <CategoryLink to={`/blog/${category.slug}`} $active={isActive(`/blog/${category.slug}`)}>
                     {category.title}
                   </CategoryLink>
                 </CategoryItem>
