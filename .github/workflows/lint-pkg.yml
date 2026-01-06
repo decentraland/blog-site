@@ -9,5 +9,5 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Lint package.json
-        run: npx npm-package-json-lint@9 .
+        run: npx --yes npm-package-json-lint@9 .
 
