@@ -1,7 +1,6 @@
 import { BLOCKS } from '@contentful/rich-text-types'
 import { resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
-import { getEnv } from '../../config'
 import { cmsApi } from '../../services/api'
 import type {
   GetBlogAuthorParams,
@@ -374,10 +373,8 @@ const blogClient = cmsApi.injectEndpoints({
     }),
 
     getBlogPostPreview: build.query<BlogPost, GetBlogPostPreviewParams>({
-      queryFn: async ({ id, env, token }) => {
+      queryFn: async ({ id, env, token, previewBaseUrl, spaceId }) => {
         try {
-          const previewBaseUrl = getEnv('CONTENTFUL_PREVIEW_URL')
-          const spaceId = getEnv('CONTENTFUL_SPACE_ID')
           const previewUrl = `${previewBaseUrl}/spaces/${spaceId}/environments/${env}/entries?content_type=blog_post&fields.id=${id}&access_token=${token}`
 
           const response = await fetch(previewUrl)

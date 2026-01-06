@@ -27,6 +27,8 @@ interface GetBlogPostPreviewParams {
   id: string
   env: string
   token: string
+  previewBaseUrl: string
+  spaceId: string
 }
 
 export type {
