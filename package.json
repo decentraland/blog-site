@@ -85,6 +85,7 @@
     "npm": "8.* || 9.*"
   },
   "overrides": {
-    "@types/node": "20.8.3"
+    "@types/node": "20.8.3",
+    "ua-parser-js": "1.0.40"
   }
 }
