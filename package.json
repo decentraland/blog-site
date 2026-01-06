@@ -20,9 +20,9 @@
     "lint:pkg": "npmPkgJsonLint ."
   },
   "dependencies": {
-    "@dcl/hooks": "^1.0.0",
-    "@dcl/schemas": "^21.0.0",
-    "@dcl/ui-env": "^2.0.0",
+    "@dcl/hooks": "1.0.0",
+    "@dcl/schemas": "21.0.0",
+    "@dcl/ui-env": "2.0.0",
     "@reduxjs/toolkit": "2.9.2",
     "algoliasearch": "5.41.0",
     "contentful": "11.8.7",
