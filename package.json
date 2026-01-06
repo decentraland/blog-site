@@ -86,6 +86,6 @@
   },
   "overrides": {
     "@types/node": "20.8.3",
-    "ua-parser-js": "1.0.40"
+    "ua-parser-js": "2.0.0"
   }
 }
