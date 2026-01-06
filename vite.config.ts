@@ -11,7 +11,7 @@ export default defineConfig(({ command, mode }) => {
     build: {
       chunkSizeWarningLimit: 1024
     },
-    ...(command === 'build' ? { base: envVariables.VITE_BASE_URL } : undefined),
+    ...(command === 'build' ? { base: envVariables.VITE_BASE_URL || '/' } : undefined),
     server: {
       proxy: {
         '/api/cms': {
