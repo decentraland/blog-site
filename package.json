@@ -20,7 +20,7 @@
     "lint:pkg": "npmPkgJsonLint ."
   },
   "dependencies": {
-    "@dcl/hooks": "0.2.0",
+    "@dcl/hooks": "1.0.0",
     "@dcl/schemas": "20.2.0",
     "@dcl/ui-env": "1.5.1",
     "@reduxjs/toolkit": "2.9.2",
