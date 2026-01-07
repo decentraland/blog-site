@@ -1,7 +1,6 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
-import { authReducer } from '../features/auth/auth.slice'
 import { blogReducer } from '../features/blog/blog.slice'
 import { algoliaClient, cmsClient } from '../services/client'
 
@@ -14,7 +13,6 @@ const blogPersistConfig = {
 }
 
 const rootReducer = combineReducers({
-  auth: authReducer,
   blog: persistReducer(blogPersistConfig, blogReducer),
   [cmsClient.reducerPath]: cmsClient.reducer,
   [algoliaClient.reducerPath]: algoliaClient.reducer
