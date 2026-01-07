@@ -9,9 +9,16 @@ export default defineConfig(({ command, mode }) => {
   return {
     plugins: [react()],
     build: {
-      chunkSizeWarningLimit: 1024
+      chunkSizeWarningLimit: 1024,
+      commonjsOptions: {
+        transformMixedEsModules: true,
+        include: [/node_modules/]
+      }
     },
-    ...(command === 'build' ? { base: envVariables.VITE_BASE_URL } : undefined),
+    optimizeDeps: {
+      include: ['decentraland-ui2', '@dcl/ui-env', '@dcl/hooks']
+    },
+    ...(command === 'build' ? { base: envVariables.VITE_BASE_URL || '/' } : undefined),
     server: {
       proxy: {
         '/api/cms': {

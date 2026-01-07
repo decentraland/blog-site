@@ -1,6 +1,6 @@
 /* eslint-disable */
-import fs from 'fs'
 import { config, parse } from 'dotenv'
+import fs from 'fs'
 
 config()
 

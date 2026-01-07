@@ -23,4 +23,19 @@ interface GetBlogAuthorParams {
   id: string
 }
 
-export type { GetBlogAuthorParams, GetBlogCategoryBySlugParams, GetBlogPostBySlugParams, GetBlogPostParams, GetBlogPostsParams }
+interface GetBlogPostPreviewParams {
+  id: string
+  env: string
+  token: string
+  previewBaseUrl: string
+  spaceId: string
+}
+
+export type {
+  GetBlogAuthorParams,
+  GetBlogCategoryBySlugParams,
+  GetBlogPostBySlugParams,
+  GetBlogPostParams,
+  GetBlogPostPreviewParams,
+  GetBlogPostsParams
+}

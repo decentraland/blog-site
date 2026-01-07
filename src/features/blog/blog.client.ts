@@ -7,6 +7,7 @@ import type {
   GetBlogCategoryBySlugParams,
   GetBlogPostBySlugParams,
   GetBlogPostParams,
+  GetBlogPostPreviewParams,
   GetBlogPostsParams
 } from './blog.types'
 import type { CMSEntry, CMSListResponse } from './cms.types'
@@ -369,6 +370,41 @@ const blogClient = cmsApi.injectEndpoints({
         return author
       },
       providesTags: (result, _error, arg) => (result ? [{ type: 'Authors', id: arg.id }] : [])
+    }),
+
+    getBlogPostPreview: build.query<BlogPost, GetBlogPostPreviewParams>({
+      queryFn: async ({ id, env, token, previewBaseUrl, spaceId }) => {
+        try {
+          const previewUrl = `${previewBaseUrl}/spaces/${spaceId}/environments/${env}/entries?content_type=blog_post&fields.id=${id}&access_token=${token}`
+
+          const response = await fetch(previewUrl)
+          if (!response.ok) {
+            return { error: { status: response.status, data: `Failed to fetch preview: ${response.statusText}` } as const }
+          }
+
+          const data = (await response.json()) as CMSListResponse
+          if (!data.items || data.items.length === 0) {
+            return { error: { status: 'CUSTOM_ERROR', error: `Preview post with id "${id}" not found` } as const }
+          }
+
+          const entry = data.items[0]
+          const resolvedEntry = await resolveEntryReferences(entry)
+          const post = mapBlogPost(resolvedEntry)
+
+          if (!post) {
+            return { error: { status: 'CUSTOM_ERROR', error: 'Failed to map preview post: missing required fields' } as const }
+          }
+
+          if (post.body) {
+            post.bodyAssets = await resolveBodyAssets(post.body as unknown as DocumentNode)
+          }
+
+          return { data: post }
+        } catch (error) {
+          return { error: { status: 'CUSTOM_ERROR', error: normalizeCmsError(error) } as const }
+        }
+      },
+      providesTags: (result, _error, arg) => (result ? [{ type: 'BlogPost', id: `preview-${arg.id}` }] : [])
     })
   }),
   overrideExisting: false
@@ -381,7 +417,8 @@ const {
   useGetBlogCategoryBySlugQuery,
   useGetBlogPostBySlugQuery,
   useGetBlogAuthorsQuery,
-  useGetBlogAuthorQuery
+  useGetBlogAuthorQuery,
+  useGetBlogPostPreviewQuery
 } = blogClient
 
 export {
@@ -391,6 +428,7 @@ export {
   useGetBlogCategoriesQuery,
   useGetBlogCategoryBySlugQuery,
   useGetBlogPostBySlugQuery,
+  useGetBlogPostPreviewQuery,
   useGetBlogPostQuery,
   useGetBlogPostsQuery
 }
