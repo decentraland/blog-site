@@ -4,8 +4,12 @@ import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
 import { useGetBlogAuthorBySlugQuery } from '../features/blog/blog.client'
 import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
+import { OGType, useSEO } from '../hooks'
 import { AuthorHeaderBox, AuthorImage, CenteredBox } from './AuthorPage.styled'
 import type { BlogAuthor } from '../shared/types/blog.domain'
+
+const BASE_URL = 'https://decentraland.org/blog'
+const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
 const AuthorPostList = ({ author }: { author: BlogAuthor }) => {
   const { posts, isLoadingInitial, error } = useInfiniteBlogPosts({
@@ -47,6 +51,19 @@ export const AuthorPage = () => {
     slug: authorSlug || ''
   })
 
+  const { SEO } = useSEO({
+    title: author?.title ? `Posts by ${author.title}` : undefined,
+    description: author?.description || DEFAULT_DESCRIPTION,
+    url: `${BASE_URL}/author/${authorSlug}`,
+    type: OGType.Profile,
+    image: author?.image
+      ? {
+          url: author.image.url,
+          alt: author.title
+        }
+      : undefined
+  })
+
   if (authorError) {
     return (
       <PageLayout showBlogNavigation={true}>
@@ -59,6 +76,7 @@ export const AuthorPage = () => {
 
   return (
     <PageLayout showBlogNavigation={true}>
+      <SEO />
       {isAuthorLoading ? (
         <CenteredBox>
           <CircularProgress />

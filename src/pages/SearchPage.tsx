@@ -4,10 +4,12 @@ import { Button, Typography } from 'decentraland-ui2'
 import { SearchResultCard } from '../components/Blog/SearchResultCard'
 import { PageLayout } from '../components/PageLayout'
 import { useSearchBlogPostsQuery } from '../features/search/search.client'
+import { useSEO } from '../hooks'
 import { CenteredBox, HeaderBox, LoadMoreContainer, ResultsWrapper, SearchSubtitle } from './SearchPage.styled'
 import type { SearchResult } from '../shared/types/blog.domain'
 
 const HITS_PER_PAGE = 10
+const BASE_URL = 'https://decentraland.org/blog'
 
 export const SearchPage = () => {
   const [searchParams] = useSearchParams()
@@ -52,8 +54,17 @@ export const SearchPage = () => {
   const showLoading = isLoading && accumulatedResults.length === 0
   const hasMore = data?.hasMore ?? false
 
+  const searchDescription = query ? `Search results for "${query}" in Decentraland Blog` : 'Search the Decentraland Blog'
+
+  const { SEO } = useSEO({
+    title: query ? `Search: ${query}` : 'Search',
+    description: searchDescription,
+    url: query ? `${BASE_URL}/search?q=${encodeURIComponent(query)}` : `${BASE_URL}/search`
+  })
+
   return (
     <PageLayout showBlogNavigation={true}>
+      <SEO />
       {query.length >= 3 && (
         <HeaderBox>
           <SearchSubtitle>

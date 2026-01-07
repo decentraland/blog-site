@@ -6,8 +6,12 @@ import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
 import { useGetBlogCategoryBySlugQuery } from '../features/blog/blog.client'
 import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
+import { useSEO } from '../hooks'
 import { CenteredBox } from './CategoryPage.styled'
 import type { BlogCategory } from '../shared/types/blog.domain'
+
+const BASE_URL = 'https://decentraland.org/blog'
+const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
 const CategoryPostList = ({ category }: { category: BlogCategory }) => {
   const isMobile = useMobileMediaQuery()
@@ -42,6 +46,20 @@ export const CategoryPage = () => {
     slug: categorySlug || ''
   })
 
+  const { SEO } = useSEO({
+    title: category?.title,
+    description: category?.description || DEFAULT_DESCRIPTION,
+    url: `${BASE_URL}/${categorySlug}`,
+    image: category?.image
+      ? {
+          url: category.image.url,
+          width: category.image.width,
+          height: category.image.height,
+          alt: category.title
+        }
+      : undefined
+  })
+
   if (categoryError) {
     return (
       <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
@@ -54,6 +72,7 @@ export const CategoryPage = () => {
 
   return (
     <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
+      <SEO />
       {isCategoryLoading ? (
         <CenteredBox>
           <CircularProgress />

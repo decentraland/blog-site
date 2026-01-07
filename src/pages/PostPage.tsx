@@ -5,6 +5,7 @@ import { useAppSelector } from '../app/hooks'
 import { RichText } from '../components/Blog/RichText'
 import { PageLayout } from '../components/PageLayout'
 import { useGetBlogPostBySlugQuery } from '../features/blog/blog.client'
+import { OGType, useSEO } from '../hooks'
 import { formatUtcDate } from '../shared/utils/date'
 import { locations } from '../shared/utils/locations'
 import {
@@ -26,6 +27,9 @@ import {
 } from './PostPage.styled'
 import type { RootState } from '../app/store'
 import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
+
+const BASE_URL = 'https://decentraland.org/blog'
+const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
 export const PostPage = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>()
@@ -65,6 +69,25 @@ export const PostPage = () => {
   const author = displayPost?.author
   const showAuthor = !!author && !!author.title
 
+  const { SEO } = useSEO({
+    title: displayPost?.title,
+    description: displayPost?.description || DEFAULT_DESCRIPTION,
+    url: displayPost ? `${BASE_URL}/${categorySlug}/${postSlug}` : BASE_URL,
+    type: OGType.Article,
+    image: displayPost?.image
+      ? {
+          url: displayPost.image.url,
+          width: displayPost.image.width,
+          height: displayPost.image.height,
+          alt: displayPost.title
+        }
+      : undefined,
+    author: author?.title,
+    publishedTime: displayPost?.publishedDate,
+    section: displayPost?.category.title,
+    tags: displayPost?.category.title ? [displayPost.category.title] : undefined
+  })
+
   if (isLoading && !cachedPost) {
     return (
       <PageLayout showBlogNavigation activeCategory={categorySlug}>
@@ -87,6 +110,7 @@ export const PostPage = () => {
 
   return (
     <PageLayout showBlogNavigation activeCategory={categorySlug}>
+      <SEO />
       <ContentContainer>
         <PostImage src={displayPost.image.url} alt={displayPost.title} />
 
