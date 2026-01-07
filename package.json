@@ -48,7 +48,6 @@
     "@types/react-router-dom": "5.3.3",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
-    "@vercel/edge": "1.2.2",
     "@vitejs/plugin-react": "4.3.1",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
@@ -86,7 +85,7 @@
   "homepage": "",
   "engines": {
     "node": "20.*",
-    "npm": "8.* || 9.*"
+    "npm": "10.*"
   },
   "overrides": {
     "@types/node": "20.8.3"

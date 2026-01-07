@@ -5,7 +5,51 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/((?!assets|favicon.ico|manifest.json|service-worker.js|sitemap.xml|robots.txt).*)",
+      "source": "/blog/:path*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(googlebot|bingbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|slackbot|pinterest).*"
+        }
+      ],
+      "destination": "/api/seo/blog/:path*"
+    },
+    {
+      "source": "/blog",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(googlebot|bingbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|slackbot|pinterest).*"
+        }
+      ],
+      "destination": "/api/seo/blog"
+    },
+    {
+      "source": "/blog/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "seo",
+          "value": "true"
+        }
+      ],
+      "destination": "/api/seo/blog/:path*"
+    },
+    {
+      "source": "/blog",
+      "has": [
+        {
+          "type": "query",
+          "key": "seo",
+          "value": "true"
+        }
+      ],
+      "destination": "/api/seo/blog"
+    },
+    {
+      "source": "/((?!api|assets|favicon.ico|manifest.json|service-worker.js|sitemap.xml|robots.txt).*)",
       "destination": "/index.html"
     }
   ],

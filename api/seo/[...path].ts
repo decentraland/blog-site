@@ -1,20 +1,13 @@
 /**
- * Vercel Edge Middleware for SEO and SPA routing
+ * Vercel Edge Function for SEO
  *
- * This middleware intercepts requests from crawlers (Google, Facebook, Twitter, etc.)
+ * This function intercepts requests from crawlers (Google, Facebook, Twitter, etc.)
  * and serves pre-rendered HTML with correct meta tags for SEO.
- *
- * How it works:
- * 1. Detects if the request is from a crawler (via User-Agent)
- * 2. For crawlers on /blog routes: fetches blog data from CMS and injects meta tags
- * 3. For regular users: serves the SPA normally
  *
  * Testing:
  * - Add ?seo=true to any /blog URL to test the SEO response
  * - Example: https://your-domain.vercel.app/blog?seo=true
  */
-
-import { next } from '@vercel/edge'
 
 const CRAWLER_USER_AGENTS = [
   'googlebot',
@@ -67,18 +60,6 @@ function isCrawler(userAgent: string): boolean {
   return CRAWLER_USER_AGENTS.some((crawler) => ua.includes(crawler))
 }
 
-async function fetchImageUrl(assetId: string): Promise<string | null> {
-  try {
-    const response = await fetch(`${CMS_BASE_URL}/assets/${assetId}`)
-    if (!response.ok) return null
-
-    const data = await response.json()
-    return data.fields?.file?.url || null
-  } catch {
-    return null
-  }
-}
-
 async function fetchBlogPost(categorySlug: string, postSlug: string): Promise<SEOData | null> {
   try {
     const response = await fetch(`${CMS_BASE_URL}/blog/posts?category=${categorySlug}&slug=${postSlug}&limit=1`)
@@ -87,21 +68,16 @@ async function fetchBlogPost(categorySlug: string, postSlug: string): Promise<SE
     const data = await response.json()
     if (!data.items || data.items.length === 0) return null
 
-    const fields = data.items[0].fields || {}
-    let imageUrl = DEFAULT_IMAGE
-
-    if (fields.image?.sys?.id) {
-      const assetUrl = await fetchImageUrl(fields.image.sys.id)
-      if (assetUrl) imageUrl = assetUrl
-    }
+    const item = data.items[0]
+    const fields = item.fields || {}
 
     return {
       title: fields.title || DEFAULT_TITLE,
       description: fields.description || DEFAULT_DESCRIPTION,
-      imageUrl,
-      author: fields.author?.fields?.name,
+      imageUrl: fields.image?.url || DEFAULT_IMAGE,
+      author: fields.author?.title,
       publishedDate: fields.publishedDate,
-      category: fields.category?.fields?.title
+      category: fields.category?.title
     }
   } catch (error) {
     console.error('[SEO] Error fetching blog post:', error)
@@ -117,18 +93,13 @@ async function fetchCategory(categorySlug: string): Promise<SEOData | null> {
     const data = await response.json()
     if (!data.items || data.items.length === 0) return null
 
-    const fields = data.items[0].fields || {}
-    let imageUrl = DEFAULT_IMAGE
-
-    if (fields.image?.sys?.id) {
-      const assetUrl = await fetchImageUrl(fields.image.sys.id)
-      if (assetUrl) imageUrl = assetUrl
-    }
+    const item = data.items[0]
+    const fields = item.fields || {}
 
     return {
       title: fields.title || DEFAULT_TITLE,
       description: fields.description || DEFAULT_DESCRIPTION,
-      imageUrl
+      imageUrl: fields.image?.url || DEFAULT_IMAGE
     }
   } catch (error) {
     console.error('[SEO] Error fetching category:', error)
@@ -144,18 +115,13 @@ async function fetchAuthor(authorSlug: string): Promise<SEOData | null> {
     const data = await response.json()
     if (!data.items || data.items.length === 0) return null
 
-    const fields = data.items[0].fields || {}
-    let imageUrl = DEFAULT_IMAGE
-
-    if (fields.image?.sys?.id) {
-      const assetUrl = await fetchImageUrl(fields.image.sys.id)
-      if (assetUrl) imageUrl = assetUrl
-    }
+    const item = data.items[0]
+    const fields = item.fields || {}
 
     return {
-      title: fields.name ? `Posts by ${fields.name}` : DEFAULT_TITLE,
+      title: fields.title ? `Posts by ${fields.title}` : DEFAULT_TITLE,
       description: fields.description || DEFAULT_DESCRIPTION,
-      imageUrl
+      imageUrl: fields.image?.url || DEFAULT_IMAGE
     }
   } catch (error) {
     console.error('[SEO] Error fetching author:', error)
@@ -171,18 +137,13 @@ async function fetchFirstBlogPost(): Promise<SEOData | null> {
     const data = await response.json()
     if (!data.items || data.items.length === 0) return null
 
-    const fields = data.items[0].fields || {}
-    let imageUrl = DEFAULT_IMAGE
-
-    if (fields.image?.sys?.id) {
-      const assetUrl = await fetchImageUrl(fields.image.sys.id)
-      if (assetUrl) imageUrl = assetUrl
-    }
+    const item = data.items[0]
+    const fields = item.fields || {}
 
     return {
       title: DEFAULT_TITLE,
       description: fields.description || DEFAULT_DESCRIPTION,
-      imageUrl
+      imageUrl: fields.image?.url || DEFAULT_IMAGE
     }
   } catch (error) {
     console.error('[SEO] Error fetching first blog post:', error)
@@ -191,8 +152,8 @@ async function fetchFirstBlogPost(): Promise<SEOData | null> {
 }
 
 function parseRoute(pathname: string): RouteInfo {
-  // Remove trailing slash
-  const path = pathname.replace(/\/$/, '')
+  // Remove /api/seo prefix and trailing slash
+  const path = pathname.replace(/^\/api\/seo/, '').replace(/\/$/, '') || '/blog'
 
   // /blog - main blog page
   if (path === '/blog' || path === '') {
@@ -290,48 +251,53 @@ function generateHTML(data: SEOData | null, originalHTML: string, url: string): 
   return html
 }
 
-async function middleware(request: Request): Promise<Response> {
+async function handler(request: Request): Promise<Response> {
   const userAgent = request.headers.get('user-agent') || ''
   const url = new URL(request.url)
   const { pathname, searchParams, origin } = url
 
   const isCrawlerRequest = isCrawler(userAgent)
   const isSEOTest = searchParams.get('seo') === 'true'
-  const isBlogRoute = pathname === '/blog' || pathname === '/blog/' || pathname.startsWith('/blog/')
 
-  // Handle SEO for crawlers on blog routes
-  if (isBlogRoute && (isCrawlerRequest || isSEOTest)) {
-    try {
-      // Fetch the index.html from the origin
-      const indexResponse = await fetch(`${origin}/index.html`)
+  // Build the actual blog URL (remove /api/seo prefix)
+  const blogPath = pathname.replace(/^\/api\/seo/, '') || '/blog'
+  const actualUrl = `${origin}${blogPath}${url.search}`
 
-      if (!indexResponse.ok) {
-        return next()
-      }
-
-      const originalHTML = await indexResponse.text()
-      const seoData = await fetchSEOData(pathname, searchParams)
-      const html = generateHTML(seoData, originalHTML, request.url)
-
-      return new Response(html, {
-        headers: {
-          'content-type': 'text/html;charset=UTF-8',
-          'cache-control': 'public, max-age=3600',
-          'x-seo-middleware': 'active',
-          'x-seo-route-type': parseRoute(pathname).type
-        }
-      })
-    } catch (error) {
-      console.error('[Middleware] Error:', error)
-      return next()
-    }
+  // If not a crawler and not testing, redirect to the actual blog URL
+  if (!isCrawlerRequest && !isSEOTest) {
+    return Response.redirect(actualUrl, 307)
   }
 
-  return next()
+  try {
+    // Fetch the index.html from the origin
+    const indexResponse = await fetch(`${origin}/index.html`)
+
+    if (!indexResponse.ok) {
+      return Response.redirect(actualUrl, 307)
+    }
+
+    const originalHTML = await indexResponse.text()
+    const seoData = await fetchSEOData(pathname, searchParams)
+    const html = generateHTML(seoData, originalHTML, actualUrl)
+
+    return new Response(html, {
+      headers: {
+        'content-type': 'text/html;charset=UTF-8',
+        'cache-control': 'public, max-age=3600',
+        'x-seo-edge-function': 'active',
+        'x-seo-route-type': parseRoute(pathname).type
+      }
+    })
+  } catch (error) {
+    console.error('[SEO Edge Function] Error:', error)
+    return Response.redirect(actualUrl, 307)
+  }
 }
 
 const config = {
-  matcher: ['/blog', '/blog/', '/blog/:path*']
+  runtime: 'edge'
 }
 
-export { config, middleware }
+// eslint-disable-next-line import/no-default-export
+export default handler
+export { config }
