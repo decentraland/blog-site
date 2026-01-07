@@ -13,7 +13,7 @@
           "value": ".*(googlebot|bingbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|slackbot|pinterest).*"
         }
       ],
-      "destination": "/api/seo/blog/:path*"
+      "destination": "/api/seo?path=/blog/:path*"
     },
     {
       "source": "/blog",
@@ -24,7 +24,7 @@
           "value": ".*(googlebot|bingbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|slackbot|pinterest).*"
         }
       ],
-      "destination": "/api/seo/blog"
+      "destination": "/api/seo?path=/blog"
     },
     {
       "source": "/blog/:path*",
@@ -35,7 +35,7 @@
           "value": "true"
         }
       ],
-      "destination": "/api/seo/blog/:path*"
+      "destination": "/api/seo?path=/blog/:path*"
     },
     {
       "source": "/blog",
@@ -46,7 +46,7 @@
           "value": "true"
         }
       ],
-      "destination": "/api/seo/blog"
+      "destination": "/api/seo?path=/blog"
     },
     {
       "source": "/((?!api|assets|favicon.ico|manifest.json|service-worker.js|sitemap.xml|robots.txt).*)",
