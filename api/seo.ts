@@ -4,48 +4,62 @@
  * This function serves pre-rendered HTML with correct meta tags for crawlers.
  *
  * Testing:
- * - GET /api/seo?path=/blog/category/post-slug
+ * - GET /api/seo?path=/blog/category/post-slug&seo=true
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
+// =============================================================================
+// Constants
+// =============================================================================
+
 const CRAWLER_USER_AGENTS = [
+  // Search engines
   'googlebot',
   'bingbot',
   'yandex',
   'baiduspider',
   'duckduckbot',
   'applebot',
+  // Social networks
   'facebookexternalhit',
   'facebot',
   'twitterbot',
   'linkedinbot',
   'pinterest',
+  'redditbot',
+  'tumblr',
+  'vkshare',
+  // Messaging apps
   'whatsapp',
   'telegrambot',
   'discordbot',
   'slackbot',
   'slack-imgproxy',
-  'redditbot',
-  'tumblr',
   'viber',
   'skypeuripreview',
+  // Other services
   'embedly',
   'quora',
   'outbrain',
   'rogerbot',
   'showyoubot',
-  'vkshare',
   'w3c_validator',
   'opengraph'
 ]
 
 const CMS_BASE_URL = 'https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master'
-const DEFAULT_IMAGE =
-  'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png'
-const DEFAULT_TITLE = 'Decentraland Blog'
-const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
-const SITE_NAME = 'Decentraland'
+
+const DEFAULTS = {
+  title: 'Decentraland Blog',
+  description: 'Stay up to date with Decentraland announcements, updates, community highlights, and more.',
+  image: 'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png',
+  siteName: 'Decentraland'
+} as const
+
+// =============================================================================
+// Types
+// =============================================================================
 
 interface SEOData {
   title: string
@@ -64,32 +78,11 @@ interface RouteInfo {
 }
 
 interface CMSLink {
-  sys: {
-    type: string
-    linkType: string
-    id: string
-  }
-}
-
-interface CMSAssetFields {
-  title?: string
-  file?: {
-    url?: string
-    contentType?: string
-    details?: {
-      image?: {
-        width?: number
-        height?: number
-      }
-    }
-  }
+  sys: { type: string; linkType: string; id: string }
 }
 
 interface CMSEntry {
-  sys: {
-    id: string
-    type: string
-  }
+  sys: { id: string; type: string }
   fields?: Record<string, unknown>
 }
 
@@ -98,295 +91,195 @@ interface CMSListResponse {
   total: number
 }
 
-function isCrawler(userAgent: string): boolean {
-  const ua = (userAgent || '').toLowerCase()
-  return CRAWLER_USER_AGENTS.some((crawler) => ua.includes(crawler))
-}
+// =============================================================================
+// CMS Helpers
+// =============================================================================
 
-// Resolve an asset link to get the full URL
-async function resolveAsset(assetLink: CMSLink): Promise<string | null> {
+const fetchJSON = async <T>(url: string): Promise<T | null> => {
   try {
-    const response = await fetch(`${CMS_BASE_URL}/assets/${assetLink.sys.id}`)
-    if (!response.ok) return null
-
-    const data = (await response.json()) as { fields?: CMSAssetFields }
-    const fileUrl = data.fields?.file?.url
-    if (fileUrl) {
-      return fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl
-    }
-    return null
+    const response = await fetch(url)
+    return response.ok ? ((await response.json()) as T) : null
   } catch {
     return null
   }
 }
 
-// Resolve an entry link (for author/category)
-async function resolveEntry(entryLink: CMSLink): Promise<CMSEntry | null> {
-  try {
-    const response = await fetch(`${CMS_BASE_URL}/entries/${entryLink.sys.id}`)
-    if (!response.ok) return null
-    return (await response.json()) as CMSEntry
-  } catch {
-    return null
+const resolveAssetUrl = async (assetLink: CMSLink): Promise<string | null> => {
+  const data = await fetchJSON<{ fields?: { file?: { url?: string } } }>(`${CMS_BASE_URL}/assets/${assetLink.sys.id}`)
+  const url = data?.fields?.file?.url
+  return url ? (url.startsWith('//') ? `https:${url}` : url) : null
+}
+
+const resolveEntryField = async (entryLink: CMSLink, field: string): Promise<string | undefined> => {
+  const entry = await fetchJSON<CMSEntry>(`${CMS_BASE_URL}/entries/${entryLink.sys.id}`)
+  return entry?.fields?.[field] as string | undefined
+}
+
+const getSlug = (fields: Record<string, unknown>, fallbackId: string): string =>
+  (fields.slug as string) || (fields.id as string) || fallbackId
+
+const resolveImage = async (fields: Record<string, unknown>): Promise<string> => {
+  if (fields.image && typeof fields.image === 'object') {
+    const resolved = await resolveAssetUrl(fields.image as CMSLink)
+    if (resolved) return resolved
+  }
+  return DEFAULTS.image
+}
+
+// =============================================================================
+// Data Fetchers
+// =============================================================================
+
+const findEntryBySlug = async (endpoint: string, slug: string): Promise<CMSEntry | null> => {
+  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}${endpoint}`)
+  return data?.items.find((item) => getSlug(item.fields as Record<string, unknown>, item.sys.id) === slug) ?? null
+}
+
+const fetchBlogPost = async (postSlug: string): Promise<SEOData | null> => {
+  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}/blog/posts?limit=200`)
+  const entry = data?.items.find((item) => getSlug(item.fields as Record<string, unknown>, item.sys.id) === postSlug)
+  if (!entry?.fields) return null
+
+  const fields = entry.fields as Record<string, unknown>
+  const [imageUrl, author, category] = await Promise.all([
+    resolveImage(fields),
+    fields.author ? resolveEntryField(fields.author as CMSLink, 'title') : undefined,
+    fields.category ? resolveEntryField(fields.category as CMSLink, 'title') : undefined
+  ])
+
+  return {
+    title: (fields.title as string) || DEFAULTS.title,
+    description: (fields.description as string) || DEFAULTS.description,
+    imageUrl,
+    author,
+    category,
+    publishedDate: fields.publishedDate as string
   }
 }
 
-// Helper to get slug from fields
-function getEntrySlug(fields: Record<string, unknown>, fallbackId: string): string {
-  // Check for slug field first (most reliable)
-  if (typeof fields.slug === 'string' && fields.slug) {
-    return fields.slug
-  }
-  // Check for id field (some entries use this)
-  if (typeof fields.id === 'string' && fields.id) {
-    return fields.id
-  }
-  // Fallback to sys.id
-  return fallbackId
-}
+const fetchCategory = async (categorySlug: string): Promise<SEOData | null> => {
+  const entry = await findEntryBySlug('/blog/categories', categorySlug)
+  if (!entry?.fields) return null
 
-async function fetchBlogPost(postSlug: string): Promise<SEOData | null> {
-  try {
-    // Fetch posts (limit 100 to find the post)
-    const response = await fetch(`${CMS_BASE_URL}/blog/posts?limit=200`)
-    if (!response.ok) return null
-
-    const data = (await response.json()) as CMSListResponse
-    if (!data.items || data.items.length === 0) return null
-
-    // Find the post by slug
-    const postEntry = data.items.find((item) => {
-      const fields = item.fields as Record<string, unknown>
-      return getEntrySlug(fields, item.sys.id) === postSlug
-    })
-
-    if (!postEntry) return null
-
-    const fields = postEntry.fields as Record<string, unknown>
-
-    // Resolve the image
-    let imageUrl = DEFAULT_IMAGE
-    if (fields.image && typeof fields.image === 'object') {
-      const resolvedImage = await resolveAsset(fields.image as CMSLink)
-      if (resolvedImage) {
-        imageUrl = resolvedImage
-      }
-    }
-
-    // Resolve author
-    let authorName: string | undefined
-    if (fields.author && typeof fields.author === 'object') {
-      const authorEntry = await resolveEntry(fields.author as CMSLink)
-      if (authorEntry?.fields) {
-        authorName = (authorEntry.fields as Record<string, unknown>).title as string
-      }
-    }
-
-    // Resolve category
-    let categoryName: string | undefined
-    if (fields.category && typeof fields.category === 'object') {
-      const categoryEntry = await resolveEntry(fields.category as CMSLink)
-      if (categoryEntry?.fields) {
-        categoryName = (categoryEntry.fields as Record<string, unknown>).title as string
-      }
-    }
-
-    return {
-      title: (fields.title as string) || DEFAULT_TITLE,
-      description: (fields.description as string) || DEFAULT_DESCRIPTION,
-      imageUrl,
-      author: authorName,
-      publishedDate: fields.publishedDate as string,
-      category: categoryName
-    }
-  } catch (error) {
-    console.error('[SEO] Error fetching blog post:', error)
-    return null
+  const fields = entry.fields as Record<string, unknown>
+  return {
+    title: (fields.title as string) || DEFAULTS.title,
+    description: (fields.description as string) || DEFAULTS.description,
+    imageUrl: await resolveImage(fields)
   }
 }
 
-async function fetchCategory(categorySlug: string): Promise<SEOData | null> {
-  try {
-    const response = await fetch(`${CMS_BASE_URL}/blog/categories`)
-    if (!response.ok) return null
+const fetchAuthor = async (authorSlug: string): Promise<SEOData | null> => {
+  const entry = await findEntryBySlug('/blog/authors', authorSlug)
+  if (!entry?.fields) return null
 
-    const data = (await response.json()) as CMSListResponse
-    if (!data.items || data.items.length === 0) return null
-
-    // Find the category by slug
-    const categoryEntry = data.items.find((item) => {
-      const fields = item.fields as Record<string, unknown>
-      return getEntrySlug(fields, item.sys.id) === categorySlug
-    })
-
-    if (!categoryEntry) return null
-
-    const fields = categoryEntry.fields as Record<string, unknown>
-
-    // Resolve the image
-    let imageUrl = DEFAULT_IMAGE
-    if (fields.image && typeof fields.image === 'object') {
-      const resolvedImage = await resolveAsset(fields.image as CMSLink)
-      if (resolvedImage) {
-        imageUrl = resolvedImage
-      }
-    }
-
-    return {
-      title: (fields.title as string) || DEFAULT_TITLE,
-      description: (fields.description as string) || DEFAULT_DESCRIPTION,
-      imageUrl
-    }
-  } catch (error) {
-    console.error('[SEO] Error fetching category:', error)
-    return null
+  const fields = entry.fields as Record<string, unknown>
+  const title = fields.title as string
+  return {
+    title: title ? `Posts by ${title}` : DEFAULTS.title,
+    description: (fields.description as string) || DEFAULTS.description,
+    imageUrl: await resolveImage(fields)
   }
 }
 
-async function fetchAuthor(authorSlug: string): Promise<SEOData | null> {
-  try {
-    const response = await fetch(`${CMS_BASE_URL}/blog/authors`)
-    if (!response.ok) return null
+const fetchDefaultSEO = async (): Promise<SEOData | null> => {
+  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}/blog/posts?limit=1`)
+  if (!data?.items[0]?.fields) return null
 
-    const data = (await response.json()) as CMSListResponse
-    if (!data.items || data.items.length === 0) return null
-
-    // Find the author by slug
-    const authorEntry = data.items.find((item) => {
-      const fields = item.fields as Record<string, unknown>
-      return getEntrySlug(fields, item.sys.id) === authorSlug
-    })
-
-    if (!authorEntry) return null
-
-    const fields = authorEntry.fields as Record<string, unknown>
-
-    // Resolve the image
-    let imageUrl = DEFAULT_IMAGE
-    if (fields.image && typeof fields.image === 'object') {
-      const resolvedImage = await resolveAsset(fields.image as CMSLink)
-      if (resolvedImage) {
-        imageUrl = resolvedImage
-      }
-    }
-
-    return {
-      title: (fields.title as string) ? `Posts by ${fields.title}` : DEFAULT_TITLE,
-      description: (fields.description as string) || DEFAULT_DESCRIPTION,
-      imageUrl
-    }
-  } catch (error) {
-    console.error('[SEO] Error fetching author:', error)
-    return null
+  const fields = data.items[0].fields as Record<string, unknown>
+  return {
+    title: DEFAULTS.title,
+    description: (fields.description as string) || DEFAULTS.description,
+    imageUrl: await resolveImage(fields)
   }
 }
 
-async function fetchFirstBlogPost(): Promise<SEOData | null> {
-  try {
-    const response = await fetch(`${CMS_BASE_URL}/blog/posts?limit=1`)
-    if (!response.ok) return null
+// =============================================================================
+// Route Parsing
+// =============================================================================
 
-    const data = (await response.json()) as CMSListResponse
-    if (!data.items || data.items.length === 0) return null
+const ROUTE_PATTERNS: Array<{ pattern: RegExp; handler: (match: RegExpMatchArray) => RouteInfo }> = [
+  { pattern: /^\/blog\/author\/([^/]+)$/, handler: (m) => ({ type: 'author', authorSlug: m[1] }) },
+  { pattern: /^\/blog\/search$/, handler: () => ({ type: 'search' }) },
+  { pattern: /^\/blog\/([^/]+)\/([^/]+)$/, handler: (m) => ({ type: 'post', categorySlug: m[1], postSlug: m[2] }) },
+  { pattern: /^\/blog\/([^/]+)$/, handler: (m) => ({ type: 'category', categorySlug: m[1] }) },
+  { pattern: /^\/blog\/?$/, handler: () => ({ type: 'blog' }) }
+]
 
-    const fields = data.items[0].fields as Record<string, unknown>
-
-    // Resolve the image
-    let imageUrl = DEFAULT_IMAGE
-    if (fields.image && typeof fields.image === 'object') {
-      const resolvedImage = await resolveAsset(fields.image as CMSLink)
-      if (resolvedImage) {
-        imageUrl = resolvedImage
-      }
-    }
-
-    return {
-      title: DEFAULT_TITLE,
-      description: (fields.description as string) || DEFAULT_DESCRIPTION,
-      imageUrl
-    }
-  } catch (error) {
-    console.error('[SEO] Error fetching first blog post:', error)
-    return null
+const parseRoute = (pathname: string): RouteInfo => {
+  const path = pathname.replace(/\/$/, '') || '/blog'
+  for (const { pattern, handler } of ROUTE_PATTERNS) {
+    const match = path.match(pattern)
+    if (match) return handler(match)
   }
-}
-
-function parseRoute(pathname: string): RouteInfo {
-  const path = pathname.replace(/\/$/, '')
-
-  if (path === '/blog' || path === '') {
-    return { type: 'blog' }
-  }
-
-  if (path === '/blog/search') {
-    return { type: 'search' }
-  }
-
-  const authorMatch = path.match(/^\/blog\/author\/([^/]+)$/)
-  if (authorMatch) {
-    return { type: 'author', authorSlug: authorMatch[1] }
-  }
-
-  const postMatch = path.match(/^\/blog\/([^/]+)\/([^/]+)$/)
-  if (postMatch) {
-    return { type: 'post', categorySlug: postMatch[1], postSlug: postMatch[2] }
-  }
-
-  const categoryMatch = path.match(/^\/blog\/([^/]+)$/)
-  if (categoryMatch) {
-    return { type: 'category', categorySlug: categoryMatch[1] }
-  }
-
   return { type: 'unknown' }
 }
 
-async function fetchSEOData(pathname: string, query: string | null): Promise<SEOData | null> {
+// =============================================================================
+// SEO Data Resolution
+// =============================================================================
+
+const fetchSEOData = async (pathname: string, searchQuery: string | null): Promise<SEOData | null> => {
   const route = parseRoute(pathname)
 
   switch (route.type) {
     case 'post':
-      return await fetchBlogPost(route.postSlug!)
+      return fetchBlogPost(route.postSlug!)
     case 'category':
-      return await fetchCategory(route.categorySlug!)
+      return fetchCategory(route.categorySlug!)
     case 'author':
-      return await fetchAuthor(route.authorSlug!)
+      return fetchAuthor(route.authorSlug!)
     case 'search':
       return {
-        title: query ? `Search: ${query}` : 'Search',
-        description: query ? `Search results for "${query}" in Decentraland Blog` : 'Search the Decentraland Blog',
-        imageUrl: DEFAULT_IMAGE
+        title: searchQuery ? `Search: ${searchQuery}` : 'Search',
+        description: searchQuery ? `Search results for "${searchQuery}" in Decentraland Blog` : 'Search the Decentraland Blog',
+        imageUrl: DEFAULTS.image
       }
-    case 'blog':
     default:
-      return await fetchFirstBlogPost()
+      return fetchDefaultSEO()
   }
 }
 
-function generateHTML(data: SEOData | null, originalHTML: string, url: string): string {
-  const title = data?.title ? `${data.title} | ${SITE_NAME}` : DEFAULT_TITLE
-  const description = data?.description || DEFAULT_DESCRIPTION
-  const imageUrl = data?.imageUrl || DEFAULT_IMAGE
+// =============================================================================
+// HTML Generation
+// =============================================================================
+
+const replaceMetaTag = (html: string, pattern: RegExp, replacement: string): string => html.replace(pattern, replacement)
+
+const generateHTML = (data: SEOData | null, originalHTML: string, url: string): string => {
+  const title = data?.title ? `${data.title} | ${DEFAULTS.siteName}` : DEFAULTS.title
+  const description = data?.description || DEFAULTS.description
+  const imageUrl = data?.imageUrl || DEFAULTS.image
   const ogType = data?.author ? 'article' : 'website'
 
   let html = originalHTML
 
-  html = html.replace(/<title>.*?<\/title>/i, `<title>${title}</title>`)
-  html = html.replace(/<meta name="description" content="[^"]*"[^>]*>/i, `<meta name="description" content="${description}">`)
-  html = html.replace(/<link rel="canonical" href="[^"]*"[^>]*>/i, `<link rel="canonical" href="${url}">`)
+  // Basic meta tags
+  html = replaceMetaTag(html, /<title>.*?<\/title>/i, `<title>${title}</title>`)
+  html = replaceMetaTag(html, /<meta name="description" content="[^"]*"[^>]*>/i, `<meta name="description" content="${description}">`)
+  html = replaceMetaTag(html, /<link rel="canonical" href="[^"]*"[^>]*>/i, `<link rel="canonical" href="${url}">`)
 
-  html = html.replace(/<meta property="og:title" content="[^"]*"[^>]*>/i, `<meta property="og:title" content="${title}">`)
-  html = html.replace(/<meta property="og:description" content="[^"]*"[^>]*>/i, `<meta property="og:description" content="${description}">`)
-  html = html.replace(/<meta property="og:image" content="[^"]*"[^>]*>/i, `<meta property="og:image" content="${imageUrl}">`)
-  html = html.replace(/<meta property="og:url" content="[^"]*"[^>]*>/i, `<meta property="og:url" content="${url}">`)
-  html = html.replace(/<meta property="og:type" content="[^"]*"[^>]*>/i, `<meta property="og:type" content="${ogType}">`)
+  // Open Graph
+  html = replaceMetaTag(html, /<meta property="og:title" content="[^"]*"[^>]*>/i, `<meta property="og:title" content="${title}">`)
+  html = replaceMetaTag(
+    html,
+    /<meta property="og:description" content="[^"]*"[^>]*>/i,
+    `<meta property="og:description" content="${description}">`
+  )
+  html = replaceMetaTag(html, /<meta property="og:image" content="[^"]*"[^>]*>/i, `<meta property="og:image" content="${imageUrl}">`)
+  html = replaceMetaTag(html, /<meta property="og:url" content="[^"]*"[^>]*>/i, `<meta property="og:url" content="${url}">`)
+  html = replaceMetaTag(html, /<meta property="og:type" content="[^"]*"[^>]*>/i, `<meta property="og:type" content="${ogType}">`)
 
-  html = html.replace(/<meta name="twitter:title" content="[^"]*"[^>]*>/i, `<meta name="twitter:title" content="${title}">`)
-  html = html.replace(
+  // Twitter Card
+  html = replaceMetaTag(html, /<meta name="twitter:title" content="[^"]*"[^>]*>/i, `<meta name="twitter:title" content="${title}">`)
+  html = replaceMetaTag(
+    html,
     /<meta name="twitter:description" content="[^"]*"[^>]*>/i,
     `<meta name="twitter:description" content="${description}">`
   )
-  html = html.replace(/<meta name="twitter:image" content="[^"]*"[^>]*>/i, `<meta name="twitter:image" content="${imageUrl}">`)
+  html = replaceMetaTag(html, /<meta name="twitter:image" content="[^"]*"[^>]*>/i, `<meta name="twitter:image" content="${imageUrl}">`)
 
+  // Article meta (for posts)
   if (data?.author && data?.publishedDate) {
     const articleMeta = `
     <meta property="article:author" content="${data.author}">
@@ -399,12 +292,19 @@ function generateHTML(data: SEOData | null, originalHTML: string, url: string): 
   return html
 }
 
+// =============================================================================
+// Request Handler
+// =============================================================================
+
+const isCrawler = (userAgent: string): boolean => {
+  const ua = userAgent.toLowerCase()
+  return CRAWLER_USER_AGENTS.some((crawler) => ua.includes(crawler))
+}
+
 async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const userAgent = req.headers['user-agent'] || ''
   const blogPath = (req.query.path as string) || '/blog'
   const searchQuery = req.query.q as string | null
-
-  const isCrawlerRequest = isCrawler(userAgent)
   const isSEOTest = req.query.seo === 'true'
 
   const protocol = req.headers['x-forwarded-proto'] || 'https'
@@ -412,37 +312,25 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const origin = `${protocol}://${host}`
   const actualUrl = `${origin}${blogPath}`
 
-  console.log('[SEO] Request:', { blogPath, userAgent: userAgent.substring(0, 50), isCrawlerRequest, isSEOTest })
-
-  if (!isCrawlerRequest && !isSEOTest) {
+  // Redirect non-crawlers to actual URL
+  if (!isCrawler(userAgent) && !isSEOTest) {
     res.redirect(307, actualUrl)
     return
   }
 
   try {
     const indexResponse = await fetch(`${origin}/index.html`)
-
     if (!indexResponse.ok) {
-      console.error('[SEO] Failed to fetch index.html:', indexResponse.status)
       res.redirect(307, actualUrl)
       return
     }
 
-    const originalHTML = await indexResponse.text()
-    const seoData = await fetchSEOData(blogPath, searchQuery)
-
-    console.log('[SEO] Data fetched:', {
-      title: seoData?.title,
-      hasImage: !!seoData?.imageUrl,
-      imageUrl: seoData?.imageUrl?.substring(0, 50)
-    })
-
-    const html = generateHTML(seoData, originalHTML, actualUrl)
+    const [originalHTML, seoData] = await Promise.all([indexResponse.text(), fetchSEOData(blogPath, searchQuery)])
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
     res.setHeader('Cache-Control', 'public, max-age=3600')
     res.setHeader('X-SEO-Function', 'active')
-    res.status(200).send(html)
+    res.status(200).send(generateHTML(seoData, originalHTML, actualUrl))
   } catch (error) {
     console.error('[SEO Function] Error:', error)
     res.redirect(307, actualUrl)
