@@ -1,5 +1,5 @@
 import { BLOCKS } from '@contentful/rich-text-types'
-import { resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
+import { getEntrySlug, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
 import { postsUpserted } from './blog.slice'
 import { store } from '../../app/store'
@@ -283,8 +283,7 @@ const blogClient = cmsClient.injectEndpoints({
         try {
           const categoryEntry = listResponse.items.find((item) => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
-            const entrySlug = fields.id || fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
-            return entrySlug === slug
+            return getEntrySlug(fields, item.sys.id) === slug
           })
 
           if (!categoryEntry) {
@@ -326,8 +325,7 @@ const blogClient = cmsClient.injectEndpoints({
           // Find the post with matching slug in the response
           const postEntry = listResponse.items.find((item) => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
-            const entrySlug = fields.slug || fields.id || fields.title?.toLowerCase().replace(/\s+/g, '-')
-            return entrySlug === postSlug
+            return getEntrySlug(fields, item.sys.id) === postSlug
           })
 
           if (!postEntry) {
@@ -417,8 +415,7 @@ const blogClient = cmsClient.injectEndpoints({
         try {
           const authorEntry = listResponse.items.find((item) => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
-            const entrySlug = fields.id || fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
-            return entrySlug === slug
+            return getEntrySlug(fields, item.sys.id) === slug
           })
 
           if (!authorEntry) {

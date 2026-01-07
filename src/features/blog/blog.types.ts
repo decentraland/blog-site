@@ -1,3 +1,9 @@
+interface SlugFields {
+  id?: string
+  slug?: string
+  title?: string
+}
+
 interface GetBlogPostsParams {
   category?: string
   author?: string
@@ -42,5 +48,6 @@ export type {
   GetBlogPostBySlugParams,
   GetBlogPostParams,
   GetBlogPostPreviewParams,
-  GetBlogPostsParams
+  GetBlogPostsParams,
+  SlugFields
 }
