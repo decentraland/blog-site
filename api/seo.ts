@@ -12,6 +12,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 const CRAWLER_USER_AGENTS = [
   'googlebot',
   'bingbot',
+  'yandex',
+  'baiduspider',
+  'duckduckbot',
+  'applebot',
   'facebookexternalhit',
   'facebot',
   'twitterbot',
@@ -21,6 +25,18 @@ const CRAWLER_USER_AGENTS = [
   'telegrambot',
   'discordbot',
   'slackbot',
+  'slack-imgproxy',
+  'redditbot',
+  'tumblr',
+  'viber',
+  'skypeuripreview',
+  'embedly',
+  'quora',
+  'outbrain',
+  'rogerbot',
+  'showyoubot',
+  'vkshare',
+  'w3c_validator',
   'opengraph'
 ]
 

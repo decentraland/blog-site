@@ -10,7 +10,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(googlebot|bingbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|slackbot|pinterest|opengraph).*"
+          "value": ".*(googlebot|bingbot|yandex|baiduspider|duckduckbot|applebot|facebookexternalhit|facebot|twitterbot|linkedinbot|pinterest|whatsapp|telegrambot|discordbot|slackbot|slack-imgproxy|redditbot|tumblr|viber|skypeuripreview|embedly|quora|outbrain|rogerbot|showyoubot|vkshare|w3c_validator|opengraph).*"
         }
       ],
       "destination": "/api/seo?path=/blog/:path*"
@@ -21,7 +21,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(googlebot|bingbot|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|discordbot|slackbot|pinterest|opengraph).*"
+          "value": ".*(googlebot|bingbot|yandex|baiduspider|duckduckbot|applebot|facebookexternalhit|facebot|twitterbot|linkedinbot|pinterest|whatsapp|telegrambot|discordbot|slackbot|slack-imgproxy|redditbot|tumblr|viber|skypeuripreview|embedly|quora|outbrain|rogerbot|showyoubot|vkshare|w3c_validator|opengraph).*"
         }
       ],
       "destination": "/api/seo?path=/blog"
