@@ -1,4 +1,4 @@
-import { Container, Navbar } from 'decentraland-ui2'
+import { Navbar } from 'decentraland-ui2'
 import { BlogNavigation } from '../Blog/BlogNavigation'
 import type { PageLayoutProps } from './PageLayout.types'
 import { ContentWrapper, PageContainer } from './PageLayout.styled'
@@ -26,9 +26,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
         }}
       />
       {showBlogNavigation && <BlogNavigation active={activeCategory} />}
-      <ContentWrapper>
-        <Container maxWidth="lg">{children}</Container>
-      </ContentWrapper>
+      <ContentWrapper>{children}</ContentWrapper>
     </PageContainer>
   )
 }

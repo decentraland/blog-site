@@ -7,7 +7,7 @@ export const locations = {
   blogs: () => BASE_URL,
   category: (categorySlug: string) => `${BASE_URL}/${categorySlug}`,
   blog: (categorySlug: string, postSlug: string) => `${BASE_URL}/${categorySlug}/${postSlug}`,
-  author: (authorId: string) => `${BASE_URL}/author/${authorId}`,
+  author: (authorSlug: string) => `${BASE_URL}/author/${authorSlug}`,
   search: (query: string) => `${BASE_URL}/search?q=${encodeURIComponent(query)}`,
   twitter: (post: BlogPost) => {
     const url = `${window.location.origin}${post.url}`

@@ -1,5 +1,18 @@
 import { cmsBaseUrl } from '../../services/client'
+import type { SlugFields } from './blog.types'
 import type { CMSEntry, CMSListResponse, CMSQueryParams, CMSReference } from './cms.types'
+
+// ============================================================================
+// SLUG EXTRACTION - Unified logic for getting slug from CMS entries
+// ============================================================================
+
+/**
+ * Extracts slug from CMS entry fields.
+ * Priority: fields.id > fields.slug > slugified title > sys.id fallback
+ */
+const getEntrySlug = (fields: SlugFields, sysId?: string): string => {
+  return fields.id || fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-') || sysId || ''
+}
 
 // Helper function to fetch from CMS API
 const fetchFromCMS = async (endpoint: string, params?: CMSQueryParams): Promise<unknown> => {
@@ -313,4 +326,4 @@ const resolveAuthorLink = async (value: unknown): Promise<unknown> => {
   return value
 }
 
-export { fetchFromCMS, initializeHelpers, resolveAssetLink, resolveAuthorLink, resolveCategoryLink }
+export { fetchFromCMS, getEntrySlug, initializeHelpers, resolveAssetLink, resolveAuthorLink, resolveCategoryLink }

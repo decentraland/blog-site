@@ -104,7 +104,7 @@ export const PostPage = () => {
 
         {showAuthor && (
           <AuthorBox>
-            <AuthorLink to={locations.author(author.id)}>
+            <AuthorLink to={author.url}>
               {author.image?.url && <AuthorAvatar src={author.image.url} alt={author.title} />}
               <AuthorName variant="body2">{author.title}</AuthorName>
             </AuthorLink>

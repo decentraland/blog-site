@@ -1,4 +1,5 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
+import { AuthorPage } from './pages/AuthorPage'
 import { BlogPage } from './pages/BlogPage'
 import { CategoryPage } from './pages/CategoryPage'
 import { PostPage } from './pages/PostPage'
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
   {
     path: '/blog/preview',
     element: <PreviewPage />
+  },
+  {
+    path: '/blog/author/:authorSlug',
+    element: <AuthorPage />
   },
   {
     path: '/blog/:categorySlug',

@@ -20,9 +20,11 @@ interface BlogCategory {
 
 interface BlogAuthor {
   id: string
+  slug: string
   title: string
   description: string
   image: ContentfulAsset
+  url: string
 }
 
 interface BlogPost {
