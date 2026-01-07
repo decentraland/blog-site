@@ -4,6 +4,7 @@ import { BlogPage } from './pages/BlogPage'
 import { CategoryPage } from './pages/CategoryPage'
 import { PostPage } from './pages/PostPage'
 import { PreviewPage } from './pages/PreviewPage'
+import { SearchPage } from './pages/SearchPage'
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
   {
     path: '/blog/preview',
     element: <PreviewPage />
+  },
+  {
+    path: '/blog/search',
+    element: <SearchPage />
   },
   {
     path: '/blog/author/:authorSlug',

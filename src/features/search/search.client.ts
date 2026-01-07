@@ -1,6 +1,7 @@
 import { algoliasearch } from 'algoliasearch'
 import { getEnv } from '../../config'
 import { algoliaClient } from '../../services/client'
+import { resolveAssetUrl, resolveEntrySlug } from '../blog/blog.helpers'
 import type { AlgoliaHit, SearchBlogPostsParams, SearchBlogPostsResponse, SearchBlogResult } from './search.types'
 import type { SearchResult } from '../../shared/types/blog.domain'
 
@@ -35,12 +36,28 @@ const searchClient = algoliaClient.injectEndpoints({
 
           const hits = (searchResponse.hits || []) as AlgoliaHit[]
 
-          const searchResults: SearchResult[] = hits.map((hit: AlgoliaHit) => ({
-            url: `/blog/${hit.categoryId}/${hit.id}`,
-            image: hit.image,
-            title: hit._highlightResult?.title?.value || hit.title,
-            description: hit._highlightResult?.description?.value || hit.description
-          }))
+          // Resolve all assets and categories in parallel
+          const searchResults: SearchResult[] = await Promise.all(
+            hits.map(async (hit: AlgoliaHit) => {
+              // Get asset ID from imageObject reference
+              const imgObj = hit.imageObject as { sys?: { id?: string } } | undefined
+              const assetId = imgObj?.sys?.id || ''
+
+              // Get category ID from categoryObject reference
+              const catObj = hit.categoryObject as { sys?: { id?: string } } | undefined
+              const categoryId = catObj?.sys?.id || ''
+
+              // Resolve asset URL and category slug in parallel
+              const [imageUrl, categorySlug] = await Promise.all([resolveAssetUrl(assetId), resolveEntrySlug(categoryId)])
+
+              return {
+                url: `/blog/${categorySlug}/${hit.id}`,
+                image: imageUrl,
+                title: hit._highlightResult?.title?.value || hit.title,
+                description: hit._highlightResult?.description?.value || hit.description
+              }
+            })
+          )
 
           return {
             data: {
@@ -79,14 +96,26 @@ const searchClient = algoliaClient.injectEndpoints({
 
           const hits = (searchResponse.hits || []) as AlgoliaHit[]
 
-          const searchResults: SearchBlogResult[] = hits.map((hit: AlgoliaHit) => ({
-            id: hit.id,
-            categoryId: hit.categoryId,
-            url: `/blog/${hit.categoryId}/${hit.id}`,
-            image: hit.image,
-            highlightedTitle: hit._highlightResult?.title?.value || hit.title,
-            highlightedDescription: hit._highlightResult?.description?.value || hit.description
-          }))
+          const searchResults: SearchBlogResult[] = await Promise.all(
+            hits.map(async (hit: AlgoliaHit) => {
+              const imgObj = hit.imageObject as { sys?: { id?: string } } | undefined
+              const assetId = imgObj?.sys?.id || ''
+
+              const catObj = hit.categoryObject as { sys?: { id?: string } } | undefined
+              const categoryId = catObj?.sys?.id || ''
+
+              const [imageUrl, categorySlug] = await Promise.all([resolveAssetUrl(assetId), resolveEntrySlug(categoryId)])
+
+              return {
+                id: hit.id,
+                categoryId: categorySlug,
+                url: `/blog/${categorySlug}/${hit.id}`,
+                image: imageUrl,
+                highlightedTitle: hit._highlightResult?.title?.value || hit.title,
+                highlightedDescription: hit._highlightResult?.description?.value || hit.description
+              }
+            })
+          )
 
           return { data: searchResults }
         } catch (error) {

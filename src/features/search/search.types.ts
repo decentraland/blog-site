@@ -3,9 +3,21 @@ interface AlgoliaHit {
   id: string
   title: string
   description: string
-  category: string
-  categoryId: string
-  image: string
+  category?: string
+  categoryId?: string
+  categoryObject?: {
+    sys?: { id?: string }
+    fields?: { id?: string; title?: string }
+  }
+  image?: string
+  imageObject?: {
+    sys?: { id?: string }
+    fields?: {
+      file?: {
+        url?: string
+      }
+    }
+  }
   _highlightResult?: {
     title?: {
       value: string
