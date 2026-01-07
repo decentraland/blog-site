@@ -43,6 +43,7 @@ interface PaginatedBlogPosts {
   posts: BlogPost[]
   total: number
   hasMore: boolean
+  nextCmsSkip: number // Track CMS-level skip for proper pagination with client-side filtering
 }
 
 // Placeholder for loading state in lists

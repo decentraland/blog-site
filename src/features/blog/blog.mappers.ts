@@ -48,7 +48,7 @@ function mapBlogCategory(entry: CMSEntry | null | undefined): BlogCategory | nul
     return null
   }
 
-  const slug = (entry.fields.slug as string | undefined) || slugify((entry.fields.title as string | undefined) || '')
+  const slug = (entry.fields.id as string | undefined) || slugify((entry.fields.title as string | undefined) || '')
   if (!slug) {
     return null
   }
