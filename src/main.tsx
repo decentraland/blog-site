@@ -3,8 +3,9 @@ import { Provider } from 'react-redux'
 import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import * as ReactDOM from 'react-dom/client'
+import { PersistGate } from 'redux-persist/integration/react'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
-import { store } from './app/store'
+import { persistor, store } from './app/store'
 import { blogClient } from './features/blog/blog.client'
 import { initializeHelpers } from './features/blog/blog.helpers'
 import { router } from './routes'
@@ -49,9 +50,11 @@ if ('serviceWorker' in navigator) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
-      <DclThemeProvider theme={darkTheme}>
-        <RouterProvider router={router} />
-      </DclThemeProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <DclThemeProvider theme={darkTheme}>
+          <RouterProvider router={router} />
+        </DclThemeProvider>
+      </PersistGate>
     </Provider>
   </React.StrictMode>
 )

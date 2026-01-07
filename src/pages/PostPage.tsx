@@ -24,15 +24,16 @@ import {
   TitleBox,
   TitleText
 } from './PostPage.styled'
+import type { RootState } from '../app/store'
 import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
 
 export const PostPage = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>()
 
   // Try to find the post in any cached getBlogPosts query
-  const cachedPost = useAppSelector((state): BlogPost | null => {
+  const cachedPost = useAppSelector((state: RootState): BlogPost | null => {
     // Search through all cached getBlogPosts queries
-    for (const query of Object.values(state.cmsApi.queries)) {
+    for (const query of Object.values(state.cmsClient.queries)) {
       if (query?.endpointName === 'getBlogPosts' && query.status === 'fulfilled' && query.data) {
         const data = query.data as PaginatedBlogPosts
         const found = data.posts.find((p) => p.category.slug === categorySlug && p.slug === postSlug)

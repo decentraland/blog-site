@@ -1,7 +1,9 @@
 import { BLOCKS } from '@contentful/rich-text-types'
-import { cacheResolvedPost, getResolvedPostFromCache, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
+import { resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
-import { cmsApi } from '../../services/api'
+import { postsUpserted } from './blog.slice'
+import { store } from '../../app/store'
+import { cmsClient } from '../../services/client'
 import type {
   GetBlogAuthorParams,
   GetBlogCategoryBySlugParams,
@@ -13,19 +15,14 @@ import type {
 import type { CMSEntry, CMSListResponse } from './cms.types'
 import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 
+// Helper to check if a post is already in the normalized store
+const getPostFromStore = (postId: string): BlogPost | undefined => {
+  const state = store.getState()
+  return state.blog.entities[postId]
+}
+
 // Helper to resolve all references (category, author, image) in a CMS entry
-// Uses cache to avoid re-resolving posts that were already fetched in other queries
 const resolveEntryReferences = async (entry: CMSEntry): Promise<CMSEntry> => {
-  const entryId = entry?.sys?.id
-
-  // Check if this post is already resolved and cached
-  if (entryId) {
-    const cachedPost = getResolvedPostFromCache(entryId)
-    if (cachedPost) {
-      return cachedPost
-    }
-  }
-
   const resolvedEntry = { ...entry, fields: { ...entry.fields } }
 
   // Resolve all references in parallel for better performance
@@ -38,9 +35,6 @@ const resolveEntryReferences = async (entry: CMSEntry): Promise<CMSEntry> => {
   if (category) resolvedEntry.fields.category = category
   if (author) resolvedEntry.fields.author = author
   if (image) resolvedEntry.fields.image = image
-
-  // Cache the resolved post for future use
-  cacheResolvedPost(resolvedEntry)
 
   return resolvedEntry
 }
@@ -119,7 +113,7 @@ const resolveBodyAssets = async (body: DocumentNode): Promise<Record<string, Con
   return assetsMap
 }
 
-const blogClient = cmsApi.injectEndpoints({
+const blogClient = cmsClient.injectEndpoints({
   endpoints: (build) => ({
     getBlogPosts: build.query<PaginatedBlogPosts, GetBlogPostsParams>({
       serializeQueryArgs: ({ queryArgs }) => {
@@ -160,21 +154,36 @@ const blogClient = cmsApi.injectEndpoints({
         try {
           const totalAvailable = listResponse.total
 
-          // The API response already includes all fields in each item,
-          // we just need to resolve the references (category, author, image)
-          const resolvedEntries = await Promise.all(listResponse.items.map((item) => resolveEntryReferences(item)))
+          // Map each entry, using cached posts from normalized store when available
+          const batchPosts = await Promise.all(
+            listResponse.items.map(async (item) => {
+              const postId = item.sys?.id
+              if (postId) {
+                // Check if post already exists in normalized store
+                const cachedPost = getPostFromStore(postId)
+                if (cachedPost) {
+                  return cachedPost
+                }
+              }
 
-          const batchPosts = resolvedEntries
-            .map((entry) => {
+              // Post not in store, resolve references and map
               try {
-                return mapBlogPost(entry)
+                const resolvedEntry = await resolveEntryReferences(item)
+                return mapBlogPost(resolvedEntry)
               } catch {
                 return null
               }
             })
-            .filter((post): post is BlogPost => post !== null)
+          )
 
-          let filteredPosts = batchPosts
+          const validPosts = batchPosts.filter((post): post is BlogPost => post !== null)
+
+          // Upsert all valid posts to normalized store
+          if (validPosts.length > 0) {
+            store.dispatch(postsUpserted(validPosts))
+          }
+
+          let filteredPosts = validPosts
           if (category) {
             filteredPosts = filteredPosts.filter((post: BlogPost) => post.category.id === category)
           }
@@ -213,18 +222,16 @@ const blogClient = cmsApi.injectEndpoints({
 
     getBlogPost: build.query<BlogPost, GetBlogPostParams>({
       query: ({ id }) => ({ url: `/entries/${id}` }),
-      transformResponse: async (response: CMSEntry) => {
+      transformResponse: async (response: CMSEntry, _meta, { id }) => {
         try {
-          if (response.fields.category) {
-            response.fields.category = await resolveCategoryLink(response.fields.category)
+          // Check if post already exists in normalized store (with body assets)
+          const cachedPost = getPostFromStore(id)
+          if (cachedPost && cachedPost.bodyAssets && Object.keys(cachedPost.bodyAssets).length > 0) {
+            return cachedPost
           }
-          if (response.fields.author) {
-            response.fields.author = await resolveAuthorLink(response.fields.author)
-          }
-          if (response.fields.image) {
-            response.fields.image = await resolveAssetLink(response.fields.image)
-          }
-          const post = mapBlogPost(response)
+
+          const resolvedEntry = await resolveEntryReferences(response)
+          const post = mapBlogPost(resolvedEntry)
 
           if (!post) {
             throw {
@@ -237,6 +244,9 @@ const blogClient = cmsApi.injectEndpoints({
           if (post.body) {
             post.bodyAssets = await resolveBodyAssets(post.body as unknown as DocumentNode)
           }
+
+          // Upsert to normalized store
+          store.dispatch(postsUpserted([post]))
 
           return post
         } catch (error) {
@@ -321,7 +331,20 @@ const blogClient = cmsApi.injectEndpoints({
             }
           }
 
-          // The API response already includes all fields, just resolve the references
+          const postId = postEntry.sys?.id
+
+          // Check if post already exists in normalized store (with body assets)
+          if (postId) {
+            const cachedPost = getPostFromStore(postId)
+            if (cachedPost && cachedPost.bodyAssets && Object.keys(cachedPost.bodyAssets).length > 0) {
+              // Verify category matches
+              if (cachedPost.category.slug === categorySlug) {
+                return cachedPost
+              }
+            }
+          }
+
+          // Resolve references and map
           const resolvedEntry = await resolveEntryReferences(postEntry)
           const post = mapBlogPost(resolvedEntry)
 
@@ -343,6 +366,9 @@ const blogClient = cmsApi.injectEndpoints({
           if (post.body) {
             post.bodyAssets = await resolveBodyAssets(post.body as unknown as DocumentNode)
           }
+
+          // Upsert to normalized store
+          store.dispatch(postsUpserted([post]))
 
           return post
         } catch (error) {

@@ -1,4 +1,4 @@
-import { cmsBaseUrl } from '../../services/api'
+import { cmsBaseUrl } from '../../services/client'
 import type { CMSEntry, CMSListResponse, CMSQueryParams, CMSReference } from './cms.types'
 
 // Helper function to fetch from CMS API
@@ -33,22 +33,6 @@ const assetsCachePromises = new Map<string, Promise<CMSEntry>>()
 
 const entriesCache = new Map<string, CMSEntry>()
 const entriesCachePromises = new Map<string, Promise<CMSEntry>>()
-
-// Cache for fully resolved posts - keyed by post ID
-// This allows reusing posts across different category views
-const resolvedPostsCache = new Map<string, CMSEntry>()
-
-// Get a resolved post from cache by ID
-const getResolvedPostFromCache = (postId: string): CMSEntry | undefined => {
-  return resolvedPostsCache.get(postId)
-}
-
-// Save a resolved post to cache
-const cacheResolvedPost = (post: CMSEntry): void => {
-  if (post?.sys?.id) {
-    resolvedPostsCache.set(post.sys.id, post)
-  }
-}
 
 const resolveAssetLink = async (value: unknown): Promise<unknown> => {
   const link = value as CMSReference
@@ -106,8 +90,8 @@ const getCategoriesFromCache = (): Map<string, CMSEntry> => {
     return new Map()
   }
 
-  const state = storeRef.getState() as { cmsApi?: { queries?: Record<string, { data?: CMSListResponse }> } }
-  const queries = state.cmsApi?.queries || {}
+  const state = storeRef.getState() as { cmsClient?: { queries?: Record<string, { data?: CMSListResponse }> } }
+  const queries = state.cmsClient?.queries || {}
 
   // Look for getBlogCategories query result
   const categoriesQuery = Object.entries(queries).find(([key]) => key.startsWith('getBlogCategories'))
@@ -132,8 +116,8 @@ const getAuthorsFromCache = (): Map<string, CMSEntry> => {
     return new Map()
   }
 
-  const state = storeRef.getState() as { cmsApi?: { queries?: Record<string, { data?: CMSListResponse }> } }
-  const queries = state.cmsApi?.queries || {}
+  const state = storeRef.getState() as { cmsClient?: { queries?: Record<string, { data?: CMSListResponse }> } }
+  const queries = state.cmsClient?.queries || {}
 
   // Look for getBlogAuthors query result
   const authorsQuery = Object.entries(queries).find(([key]) => key.startsWith('getBlogAuthors'))
@@ -329,12 +313,4 @@ const resolveAuthorLink = async (value: unknown): Promise<unknown> => {
   return value
 }
 
-export {
-  cacheResolvedPost,
-  fetchFromCMS,
-  getResolvedPostFromCache,
-  initializeHelpers,
-  resolveAssetLink,
-  resolveAuthorLink,
-  resolveCategoryLink
-}
+export { fetchFromCMS, initializeHelpers, resolveAssetLink, resolveAuthorLink, resolveCategoryLink }
