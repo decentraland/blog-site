@@ -5,6 +5,7 @@ import { postsUpserted } from './blog.slice'
 import { store } from '../../app/store'
 import { cmsClient } from '../../services/client'
 import type {
+  GetBlogAuthorBySlugParams,
   GetBlogAuthorParams,
   GetBlogCategoryBySlugParams,
   GetBlogPostBySlugParams,
@@ -316,13 +317,18 @@ const blogClient = cmsClient.injectEndpoints({
     }),
 
     getBlogPostBySlug: build.query<BlogPost, GetBlogPostBySlugParams>({
-      query: ({ categorySlug, postSlug }) => ({
+      query: () => ({
         url: '/blog/posts',
-        params: { slug: postSlug, category: categorySlug, limit: 1 }
+        params: { limit: 100 }
       }),
-      transformResponse: async (listResponse: CMSListResponse, _meta, { categorySlug, postSlug }) => {
+      transformResponse: async (listResponse: CMSListResponse, _meta, { postSlug }) => {
         try {
-          const postEntry = listResponse.items[0]
+          // Find the post with matching slug in the response
+          const postEntry = listResponse.items.find((item) => {
+            const fields = item.fields as { id?: string; slug?: string; title?: string }
+            const entrySlug = fields.slug || fields.id || fields.title?.toLowerCase().replace(/\s+/g, '-')
+            return entrySlug === postSlug
+          })
 
           if (!postEntry) {
             throw {
@@ -337,10 +343,7 @@ const blogClient = cmsClient.injectEndpoints({
           if (postId) {
             const cachedPost = getPostFromStore(postId)
             if (cachedPost && cachedPost.bodyAssets && Object.keys(cachedPost.bodyAssets).length > 0) {
-              // Verify category matches
-              if (cachedPost.category.slug === categorySlug) {
-                return cachedPost
-              }
+              return cachedPost
             }
           }
 
@@ -352,13 +355,6 @@ const blogClient = cmsClient.injectEndpoints({
             throw {
               status: 'CUSTOM_ERROR',
               error: 'Failed to map post: missing required fields'
-            }
-          }
-
-          if (post.category.slug !== categorySlug) {
-            throw {
-              status: 'CUSTOM_ERROR',
-              error: `Post found but category slug mismatch. Expected "${categorySlug}", got "${post.category.slug}"`
             }
           }
 
@@ -415,6 +411,45 @@ const blogClient = cmsClient.injectEndpoints({
       providesTags: (result, _error, arg) => (result ? [{ type: 'Authors', id: arg.id }] : [])
     }),
 
+    getBlogAuthorBySlug: build.query<BlogAuthor, GetBlogAuthorBySlugParams>({
+      query: () => ({ url: '/blog/authors' }),
+      transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
+        try {
+          const authorEntry = listResponse.items.find((item) => {
+            const fields = item.fields as { id?: string; slug?: string; title?: string }
+            const entrySlug = fields.id || fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-')
+            return entrySlug === slug
+          })
+
+          if (!authorEntry) {
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: `Author with slug "${slug}" not found`
+            }
+          }
+
+          // The API response already includes all fields, just resolve the image
+          const resolvedEntry = await resolveImageOnly(authorEntry)
+          const author = mapBlogAuthor(resolvedEntry)
+
+          if (!author) {
+            throw {
+              status: 'CUSTOM_ERROR',
+              error: 'Failed to map author: missing required fields'
+            }
+          }
+
+          return author
+        } catch (error) {
+          throw {
+            status: 'CUSTOM_ERROR',
+            error: normalizeCmsError(error)
+          }
+        }
+      },
+      providesTags: (result, _error, arg) => (result ? [{ type: 'Authors', id: arg.slug }] : [])
+    }),
+
     getBlogPostPreview: build.query<BlogPost, GetBlogPostPreviewParams>({
       queryFn: async ({ id, env, token, previewBaseUrl, spaceId }) => {
         try {
@@ -461,11 +496,13 @@ const {
   useGetBlogPostBySlugQuery,
   useGetBlogAuthorsQuery,
   useGetBlogAuthorQuery,
+  useGetBlogAuthorBySlugQuery,
   useGetBlogPostPreviewQuery
 } = blogClient
 
 export {
   blogClient,
+  useGetBlogAuthorBySlugQuery,
   useGetBlogAuthorQuery,
   useGetBlogAuthorsQuery,
   useGetBlogCategoriesQuery,

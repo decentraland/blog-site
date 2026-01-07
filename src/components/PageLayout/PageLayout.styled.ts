@@ -9,8 +9,9 @@ const PageContainer = styled(Box)(() => ({
 
 const ContentWrapper = styled(Box)(({ theme }) => ({
   flex: 1,
-  paddingTop: theme.spacing(5),
-  paddingBottom: theme.spacing(8)
+  padding: theme.spacing(5, 0, 2, 0),
+  maxWidth: theme.spacing(133),
+  margin: '0 auto'
 }))
 
 export { ContentWrapper, PageContainer }

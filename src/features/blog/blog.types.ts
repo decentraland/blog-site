@@ -23,6 +23,10 @@ interface GetBlogAuthorParams {
   id: string
 }
 
+interface GetBlogAuthorBySlugParams {
+  slug: string
+}
+
 interface GetBlogPostPreviewParams {
   id: string
   env: string
@@ -32,6 +36,7 @@ interface GetBlogPostPreviewParams {
 }
 
 export type {
+  GetBlogAuthorBySlugParams,
   GetBlogAuthorParams,
   GetBlogCategoryBySlugParams,
   GetBlogPostBySlugParams,

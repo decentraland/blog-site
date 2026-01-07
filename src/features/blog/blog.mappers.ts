@@ -77,7 +77,7 @@ function createDefaultCategory(entryId?: string): BlogCategory {
     description: 'Posts without a valid category',
     image: {
       id: 'default-category-image',
-      url: 'https://decentraland.org/images/decentraland-symbol.png',
+      url: 'https://decentraland.org/logos/png/color.png',
       width: 200,
       height: 200,
       mimeType: 'image/png'
@@ -90,7 +90,7 @@ function createDefaultCategory(entryId?: string): BlogCategory {
 function createDefaultImage(entryId?: string): ContentfulAsset {
   return {
     id: entryId || 'default-image',
-    url: 'https://decentraland.org/images/decentraland-symbol.png',
+    url: 'https://decentraland.org/logos/png/color.png',
     width: 1200,
     height: 630,
     mimeType: 'image/png'
@@ -98,17 +98,20 @@ function createDefaultImage(entryId?: string): ContentfulAsset {
 }
 
 function createDefaultAuthor(entryId?: string): BlogAuthor {
+  const slug = entryId || 'decentraland'
   return {
     id: entryId || 'unknown',
+    slug,
     title: 'Decentraland',
     description: 'Decentraland Team',
     image: {
       id: 'default-avatar',
-      url: 'https://decentraland.org/images/decentraland-symbol.png',
+      url: 'https://decentraland.org/logos/png/color.png',
       width: 200,
       height: 200,
       mimeType: 'image/png'
-    }
+    },
+    url: locations.author(slug)
   }
 }
 
@@ -123,16 +126,36 @@ function mapBlogAuthor(entry: CMSEntry | null | undefined): BlogAuthor {
     return createDefaultAuthor(entry.sys.id)
   }
 
+  // Extract title and slug BEFORE checking image
+  const title = (entry.fields.title as string | undefined) || ''
+  const slug = (entry.fields.id as string | undefined) || slugify(title) || entry.sys.id
+
   const image = mapContentfulAsset(entry.fields.image as ContentfulAssetEntry | null | undefined)
   if (!image) {
-    return createDefaultAuthor(entry.sys.id)
+    // Use the actual author data but with a default image
+    return {
+      id: entry.sys.id,
+      slug,
+      title: title || 'Decentraland',
+      description: (entry.fields.description as string | undefined) || '',
+      image: {
+        id: 'default-avatar',
+        url: 'https://decentraland.org/logos/png/color.png',
+        width: 200,
+        height: 200,
+        mimeType: 'image/png'
+      },
+      url: locations.author(slug)
+    }
   }
 
   return {
     id: entry.sys.id,
-    title: (entry.fields.title as string | undefined) || '',
+    slug,
+    title,
     description: (entry.fields.description as string | undefined) || '',
-    image
+    image,
+    url: locations.author(slug)
   }
 }
 
