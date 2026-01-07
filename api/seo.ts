@@ -20,7 +20,8 @@ const CRAWLER_USER_AGENTS = [
   'whatsapp',
   'telegrambot',
   'discordbot',
-  'slackbot'
+  'slackbot',
+  'opengraph'
 ]
 
 const CMS_BASE_URL = 'https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master'
