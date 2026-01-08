@@ -4,6 +4,8 @@ import { CircularProgress, Typography } from 'decentraland-ui2'
 import { useAppSelector } from '../app/hooks'
 import { RichText } from '../components/Blog/RichText'
 import { PageLayout } from '../components/PageLayout'
+import { OGType, SEO } from '../components/SEO'
+import { getEnv } from '../config'
 import { useGetBlogPostBySlugQuery } from '../features/blog/blog.client'
 import { formatUtcDate } from '../shared/utils/date'
 import { locations } from '../shared/utils/locations'
@@ -26,6 +28,8 @@ import {
 } from './PostPage.styled'
 import type { RootState } from '../app/store'
 import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
+
+const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
 export const PostPage = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>()
@@ -65,6 +69,8 @@ export const PostPage = () => {
   const author = displayPost?.author
   const showAuthor = !!author && !!author.title
 
+  const baseUrl = getEnv('BLOG_BASE_URL') || ''
+
   if (isLoading && !cachedPost) {
     return (
       <PageLayout showBlogNavigation activeCategory={categorySlug}>
@@ -87,6 +93,26 @@ export const PostPage = () => {
 
   return (
     <PageLayout showBlogNavigation activeCategory={categorySlug}>
+      <SEO
+        title={displayPost?.title}
+        description={displayPost?.description || DEFAULT_DESCRIPTION}
+        url={displayPost ? `${baseUrl}/${categorySlug}/${postSlug}` : baseUrl}
+        type={OGType.Article}
+        image={
+          displayPost?.image
+            ? {
+                url: displayPost.image.url,
+                width: displayPost.image.width,
+                height: displayPost.image.height,
+                alt: displayPost.title
+              }
+            : undefined
+        }
+        author={author?.title}
+        publishedTime={displayPost?.publishedDate}
+        section={displayPost?.category.title}
+        tags={displayPost?.category.title ? [displayPost.category.title] : undefined}
+      />
       <ContentContainer>
         <PostImage src={displayPost.image.url} alt={displayPost.title} />
 

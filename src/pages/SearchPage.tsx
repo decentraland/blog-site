@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { Button, Typography } from 'decentraland-ui2'
 import { SearchResultCard } from '../components/Blog/SearchResultCard'
 import { PageLayout } from '../components/PageLayout'
+import { SEO } from '../components/SEO'
+import { getEnv } from '../config'
 import { useSearchBlogPostsQuery } from '../features/search/search.client'
 import { CenteredBox, HeaderBox, LoadMoreContainer, ResultsWrapper, SearchSubtitle } from './SearchPage.styled'
 import type { SearchResult } from '../shared/types/blog.domain'
@@ -52,8 +54,16 @@ export const SearchPage = () => {
   const showLoading = isLoading && accumulatedResults.length === 0
   const hasMore = data?.hasMore ?? false
 
+  const searchDescription = query ? `Search results for "${query}" in Decentraland Blog` : 'Search the Decentraland Blog'
+  const baseUrl = getEnv('BLOG_BASE_URL') || ''
+
   return (
     <PageLayout showBlogNavigation={true}>
+      <SEO
+        title={query ? `Search: ${query}` : 'Search'}
+        description={searchDescription}
+        url={query ? `${baseUrl}/search?q=${encodeURIComponent(query)}` : `${baseUrl}/search`}
+      />
       {query.length >= 3 && (
         <HeaderBox>
           <SearchSubtitle>

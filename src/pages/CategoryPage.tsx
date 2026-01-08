@@ -4,10 +4,14 @@ import { CircularProgress, Typography } from 'decentraland-ui2'
 import { CategoryHero } from '../components/Blog/CategoryHero'
 import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
+import { SEO } from '../components/SEO'
+import { getEnv } from '../config'
 import { useGetBlogCategoryBySlugQuery } from '../features/blog/blog.client'
 import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
 import { CenteredBox } from './CategoryPage.styled'
 import type { BlogCategory } from '../shared/types/blog.domain'
+
+const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
 const CategoryPostList = ({ category }: { category: BlogCategory }) => {
   const isMobile = useMobileMediaQuery()
@@ -42,6 +46,8 @@ export const CategoryPage = () => {
     slug: categorySlug || ''
   })
 
+  const baseUrl = getEnv('BLOG_BASE_URL') || ''
+
   if (categoryError) {
     return (
       <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
@@ -54,6 +60,21 @@ export const CategoryPage = () => {
 
   return (
     <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
+      <SEO
+        title={category?.title}
+        description={category?.description || DEFAULT_DESCRIPTION}
+        url={`${baseUrl}/${categorySlug}`}
+        image={
+          category?.image
+            ? {
+                url: category.image.url,
+                width: category.image.width,
+                height: category.image.height,
+                alt: category.title
+              }
+            : undefined
+        }
+      />
       {isCategoryLoading ? (
         <CenteredBox>
           <CircularProgress />

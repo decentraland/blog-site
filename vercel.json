@@ -1,0 +1,85 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/blog/:path*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(googlebot|bingbot|yandex|baiduspider|duckduckbot|applebot|facebookexternalhit|facebot|twitterbot|linkedinbot|pinterest|whatsapp|telegrambot|discordbot|slackbot|slack-imgproxy|redditbot|tumblr|viber|skypeuripreview|embedly|quora|outbrain|rogerbot|showyoubot|vkshare|w3c_validator|opengraph).*"
+        }
+      ],
+      "destination": "/api/seo?path=/blog/:path*"
+    },
+    {
+      "source": "/blog",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(googlebot|bingbot|yandex|baiduspider|duckduckbot|applebot|facebookexternalhit|facebot|twitterbot|linkedinbot|pinterest|whatsapp|telegrambot|discordbot|slackbot|slack-imgproxy|redditbot|tumblr|viber|skypeuripreview|embedly|quora|outbrain|rogerbot|showyoubot|vkshare|w3c_validator|opengraph).*"
+        }
+      ],
+      "destination": "/api/seo?path=/blog"
+    },
+    {
+      "source": "/blog/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "seo",
+          "value": "true"
+        }
+      ],
+      "destination": "/api/seo?path=/blog/:path*"
+    },
+    {
+      "source": "/blog",
+      "has": [
+        {
+          "type": "query",
+          "key": "seo",
+          "value": "true"
+        }
+      ],
+      "destination": "/api/seo?path=/blog"
+    },
+    {
+      "source": "/((?!api|assets|favicon.ico|manifest.json|service-worker.js|sitemap.xml|robots.txt).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}
