@@ -326,4 +326,56 @@ const resolveAuthorLink = async (value: unknown): Promise<unknown> => {
   return value
 }
 
-export { fetchFromCMS, getEntrySlug, initializeHelpers, resolveAssetLink, resolveAuthorLink, resolveCategoryLink }
+// ============================================================================
+// URL RESOLVERS - Simple functions that return just URLs/slugs from references
+// ============================================================================
+
+const resolveAssetUrl = async (assetId: string): Promise<string> => {
+  if (!assetId) return ''
+
+  const resolved = await resolveAssetLink({ sys: { type: 'Link', linkType: 'Asset', id: assetId } })
+  const asset = resolved as CMSEntry
+  const url = (asset?.fields?.file as { url?: string })?.url || ''
+  return url.startsWith('//') ? `https:${url}` : url
+}
+
+const resolveEntrySlug = async (entryId: string): Promise<string> => {
+  if (!entryId) return ''
+
+  // Return from cache if available
+  if (entriesCache.has(entryId)) {
+    const entry = entriesCache.get(entryId)
+    return (entry?.fields?.id as string) || (entry?.fields?.slug as string) || ''
+  }
+
+  // If already fetching, wait for that promise
+  if (entriesCachePromises.has(entryId)) {
+    const entry = await entriesCachePromises.get(entryId)
+    return (entry?.fields?.id as string) || (entry?.fields?.slug as string) || ''
+  }
+
+  try {
+    const entryPromise = fetchFromCMS(`/entries/${entryId}`)
+    entriesCachePromises.set(entryId, entryPromise as Promise<CMSEntry>)
+
+    const entry = (await entryPromise) as CMSEntry
+    entriesCache.set(entryId, entry)
+    entriesCachePromises.delete(entryId)
+
+    return (entry?.fields?.id as string) || (entry?.fields?.slug as string) || ''
+  } catch {
+    entriesCachePromises.delete(entryId)
+    return ''
+  }
+}
+
+export {
+  fetchFromCMS,
+  getEntrySlug,
+  initializeHelpers,
+  resolveAssetLink,
+  resolveAssetUrl,
+  resolveAuthorLink,
+  resolveCategoryLink,
+  resolveEntrySlug
+}

@@ -3,5 +3,6 @@
   "ALGOLIA_API_KEY": "d7f493e3a24525b7021451b81b1d294a",
   "ALGOLIA_BLOG_INDEX": "blog_contentful_prd",
   "AUTH_URL": "https://decentraland.today/auth",
+  "BLOG_BASE_URL": "https://decentraland.today/blog",
   "CMS_BASE_URL": "https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master"
 }
