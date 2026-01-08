@@ -3,13 +3,13 @@ import { useSearchParams } from 'react-router-dom'
 import { Button, Typography } from 'decentraland-ui2'
 import { SearchResultCard } from '../components/Blog/SearchResultCard'
 import { PageLayout } from '../components/PageLayout'
+import { SEO } from '../components/SEO'
+import { getEnv } from '../config'
 import { useSearchBlogPostsQuery } from '../features/search/search.client'
-import { useSEO } from '../hooks'
 import { CenteredBox, HeaderBox, LoadMoreContainer, ResultsWrapper, SearchSubtitle } from './SearchPage.styled'
 import type { SearchResult } from '../shared/types/blog.domain'
 
 const HITS_PER_PAGE = 10
-const BASE_URL = 'https://decentraland.org/blog'
 
 export const SearchPage = () => {
   const [searchParams] = useSearchParams()
@@ -55,16 +55,15 @@ export const SearchPage = () => {
   const hasMore = data?.hasMore ?? false
 
   const searchDescription = query ? `Search results for "${query}" in Decentraland Blog` : 'Search the Decentraland Blog'
-
-  const { SEO } = useSEO({
-    title: query ? `Search: ${query}` : 'Search',
-    description: searchDescription,
-    url: query ? `${BASE_URL}/search?q=${encodeURIComponent(query)}` : `${BASE_URL}/search`
-  })
+  const baseUrl = getEnv('BLOG_BASE_URL') || ''
 
   return (
     <PageLayout showBlogNavigation={true}>
-      <SEO />
+      <SEO
+        title={query ? `Search: ${query}` : 'Search'}
+        description={searchDescription}
+        url={query ? `${baseUrl}/search?q=${encodeURIComponent(query)}` : `${baseUrl}/search`}
+      />
       {query.length >= 3 && (
         <HeaderBox>
           <SearchSubtitle>

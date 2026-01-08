@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet'
-import { OGType } from './useSEO.types'
-import type { OGImage, SEOProps } from './useSEO.types'
+import { getEnv } from '../../config'
+import { OGType } from './SEO.types'
+import type { OGImage, SEOProps } from './SEO.types'
 
 const DEFAULT_IMAGE: OGImage = {
   url: 'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png',
@@ -9,11 +10,11 @@ const DEFAULT_IMAGE: OGImage = {
   alt: 'Decentraland - A virtual world owned by its users',
   type: 'image/jpeg'
 }
+
 const SITE_NAME = 'Decentraland'
-const BASE_URL = 'https://decentraland.org/blog/'
 const DEFAULT_LOCALE = 'en_US'
 
-const useSEO = (props: SEOProps) => {
+const SEO = (props: SEOProps) => {
   const {
     title,
     description,
@@ -28,11 +29,12 @@ const useSEO = (props: SEOProps) => {
     tags
   } = props
 
+  const baseUrl = getEnv('BLOG_BASE_URL') || ''
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME
-  const canonicalUrl = url || BASE_URL
+  const canonicalUrl = url || baseUrl
   const imageData: OGImage = typeof image === 'string' ? { url: image } : image
 
-  const SEO = () => (
+  return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
@@ -68,8 +70,6 @@ const useSEO = (props: SEOProps) => {
       {type === OGType.Article && tags?.map((tag) => <meta key={tag} property="article:tag" content={tag} />)}
     </Helmet>
   )
-
-  return { SEO }
 }
 
-export { useSEO }
+export { SEO }
