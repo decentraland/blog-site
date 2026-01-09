@@ -97,7 +97,7 @@ export const PostPage = () => {
         title={displayPost?.title}
         description={displayPost?.description || DEFAULT_DESCRIPTION}
         url={displayPost ? `${baseUrl}/${categorySlug}/${postSlug}` : baseUrl}
-        type={OGType.Article}
+        type={OGType.ARTICLE}
         image={
           displayPost?.image
             ? {

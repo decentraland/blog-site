@@ -69,7 +69,7 @@ export const AuthorPage = () => {
         title={author?.title ? `Posts by ${author.title}` : undefined}
         description={author?.description || DEFAULT_DESCRIPTION}
         url={`${baseUrl}/author/${authorSlug}`}
-        type={OGType.Profile}
+        type={OGType.PROFILE}
         image={
           author?.image
             ? {
