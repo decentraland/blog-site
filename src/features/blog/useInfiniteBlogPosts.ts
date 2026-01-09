@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useInfiniteScroll } from '@dcl/hooks'
-import { useGetBlogPostsQuery } from './blog.client'
 import type { PostOrPlaceholder } from '../../shared/types/blog.domain'
+import { useGetBlogPostsQuery } from './blog.client'
 
 // Base limits for unfiltered requests
 const POSTS_INITIAL_LOAD = 7

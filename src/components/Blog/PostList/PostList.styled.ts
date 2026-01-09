@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Box, styled } from 'decentraland-ui2'
 
-const PostListWrapper = styled(Box, { shouldForwardProp: (prop) => prop !== 'hasMainPost' })<{ hasMainPost: boolean }>(
+const PostListWrapper = styled(Box, { shouldForwardProp: prop => prop !== 'hasMainPost' })<{ hasMainPost: boolean }>(
   ({ theme, hasMainPost }) => ({
     display: 'flex',
     flexWrap: 'wrap',

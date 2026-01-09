@@ -65,10 +65,10 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
 
       if (e.key === 'ArrowUp') {
         e.preventDefault()
-        setSelectedIndex((prev) => (prev <= 0 ? maxLength : prev - 1))
+        setSelectedIndex(prev => (prev <= 0 ? maxLength : prev - 1))
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setSelectedIndex((prev) => (prev >= maxLength ? 0 : prev + 1))
+        setSelectedIndex(prev => (prev >= maxLength ? 0 : prev + 1))
       } else if (e.key === 'Enter') {
         e.preventDefault()
         if (selectedIndex === 4 || selectedIndex === -1) {
@@ -95,7 +95,7 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
         <SearchInput
           type="text"
           value={searchValue}
-          onChange={(e) => setSearchValue((e.target as HTMLInputElement).value)}
+          onChange={e => setSearchValue((e.target as HTMLInputElement).value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
         />
@@ -138,12 +138,10 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
                 <SearchResultLink to={`/blog/${result.categoryId}/${result.id}`} onClick={handleClose}>
                   <SearchResultImage $image={result.image} />
                   <SearchResultText>
+                    {/* eslint-disable-next-line @typescript-eslint/naming-convention */}
                     <SearchResultTitle dangerouslySetInnerHTML={{ __html: result.highlightedTitle }} />
-                    <SearchResultDescription
-                      dangerouslySetInnerHTML={{
-                        __html: result.highlightedDescription
-                      }}
-                    />
+                    {/* eslint-disable-next-line @typescript-eslint/naming-convention */}
+                    <SearchResultDescription dangerouslySetInnerHTML={{ __html: result.highlightedDescription }} />
                   </SearchResultText>
                 </SearchResultLink>
               </SearchResultItem>

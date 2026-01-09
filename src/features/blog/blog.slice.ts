@@ -11,12 +11,9 @@ const blogSlice = createSlice({
   name: 'blog',
   initialState,
   reducers: {
-    // Upsert a single post
-    postUpserted: postsAdapter.upsertOne,
-    // Upsert multiple posts at once
-    postsUpserted: postsAdapter.upsertMany,
-    // Clear all posts (useful for cache invalidation)
-    postsClear: postsAdapter.removeAll
+    postUpserted: (state, action) => postsAdapter.upsertOne(state, action),
+    postsUpserted: (state, action) => postsAdapter.upsertMany(state, action),
+    postsClear: state => postsAdapter.removeAll(state)
   }
 })
 

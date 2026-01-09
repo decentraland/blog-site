@@ -1,16 +1,16 @@
 import { algoliasearch } from 'algoliasearch'
 import { getEnv } from '../../config'
 import { algoliaClient } from '../../services/client'
+import type { SearchResult } from '../../shared/types/blog.domain'
 import { resolveAssetUrl, resolveEntrySlug } from '../blog/blog.helpers'
 import type { AlgoliaHit, SearchBlogPostsParams, SearchBlogPostsResponse, SearchBlogResult } from './search.types'
-import type { SearchResult } from '../../shared/types/blog.domain'
 
 const algoliaAppId = getEnv('ALGOLIA_APP_ID') || ''
 const algoliaApiKey = getEnv('ALGOLIA_API_KEY') || ''
 const algoliaIndex = getEnv('ALGOLIA_BLOG_INDEX') || 'decentraland-blog'
 
 const searchClient = algoliaClient.injectEndpoints({
-  endpoints: (build) => ({
+  endpoints: build => ({
     searchBlogPosts: build.query<SearchBlogPostsResponse, SearchBlogPostsParams>({
       queryFn: async ({ query, hitsPerPage = 10, page = 0 }) => {
         try {

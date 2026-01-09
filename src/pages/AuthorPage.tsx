@@ -6,8 +6,8 @@ import { OGType, SEO } from '../components/SEO'
 import { getEnv } from '../config'
 import { useGetBlogAuthorBySlugQuery } from '../features/blog/blog.client'
 import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
-import { AuthorHeaderBox, AuthorImage, CenteredBox } from './AuthorPage.styled'
 import type { BlogAuthor } from '../shared/types/blog.domain'
+import { AuthorHeaderBox, AuthorImage, CenteredBox } from './AuthorPage.styled'
 
 const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 

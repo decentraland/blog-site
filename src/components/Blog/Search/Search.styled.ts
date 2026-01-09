@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Link } from 'react-router-dom'
 import { Box, dclColors, styled } from 'decentraland-ui2'
 
 const SearchContainer = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$hasResults'
+  shouldForwardProp: prop => prop !== '$hasResults'
 })<{ $hasResults: boolean }>(({ theme, $hasResults }) => ({
   position: 'relative',
   width: 'auto',
@@ -98,7 +99,7 @@ const SearchResults = styled(Box)(({ theme }) => ({
 })).withComponent('ul')
 
 const SearchResultItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$selected'
+  shouldForwardProp: prop => prop !== '$selected'
 })<{ $selected: boolean }>(({ theme, $selected }) => ({
   borderRadius: theme.spacing(1),
   backgroundColor: $selected ? theme.palette.action.hover : 'transparent',
@@ -119,7 +120,7 @@ const SearchResultLink = styled(Link)(({ theme }) => ({
 }))
 
 const SearchResultImage = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$image'
+  shouldForwardProp: prop => prop !== '$image'
 })<{ $image?: string }>(({ theme, $image }) => ({
   width: '80px',
   height: '80px',
@@ -194,7 +195,7 @@ const NoResultsImage = styled(Box)(({ theme }) => ({
 }))
 
 const MoreResultsItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== '$selected'
+  shouldForwardProp: prop => prop !== '$selected'
 })<{ $selected: boolean }>(({ theme, $selected }) => ({
   borderRadius: theme.spacing(1),
   backgroundColor: $selected ? theme.palette.action.hover : 'transparent',

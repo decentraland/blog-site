@@ -1,7 +1,7 @@
 enum OGType {
-  Website = 'website',
-  Article = 'article',
-  Profile = 'profile'
+  WEBSITE = 'website',
+  ARTICLE = 'article',
+  PROFILE = 'profile'
 }
 
 interface OGImage {

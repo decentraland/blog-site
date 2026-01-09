@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect'
-import { postsSelectors } from './blog.slice'
 import type { RootState } from '../../app/store'
 import type { BlogPost } from '../../shared/types/blog.domain'
+import { postsSelectors } from './blog.slice'
 
 // Base selector to get the blog state
 const selectBlogState = (state: RootState) => state.blog
@@ -12,7 +12,7 @@ const selectAllPosts = createSelector([selectBlogState], (blogState): BlogPost[]
 // Select posts as a dictionary (id -> post)
 const selectPostsEntities = createSelector(
   [selectBlogState],
-  (blogState): Record<string, BlogPost> => postsSelectors.selectEntities(blogState) as Record<string, BlogPost>
+  (blogState): Record<string, BlogPost> => postsSelectors.selectEntities(blogState)
 )
 
 // Select a post by ID from normalized state

@@ -64,7 +64,7 @@ const resolveAssetLink = async (value: unknown): Promise<unknown> => {
 
     // Start fetching
     const assetPromise = fetchFromCMS(`/assets/${assetId}`)
-      .then((asset) => {
+      .then(asset => {
         const cmsAsset = asset as CMSEntry
         assetsCache.set(assetId, cmsAsset)
         assetsCachePromises.delete(assetId)
@@ -75,7 +75,7 @@ const resolveAssetLink = async (value: unknown): Promise<unknown> => {
         return value as CMSEntry
       })
 
-    assetsCachePromises.set(assetId, assetPromise as Promise<CMSEntry>)
+    assetsCachePromises.set(assetId, assetPromise)
     return assetPromise
   }
 
@@ -163,7 +163,7 @@ const fetchAndCacheEntry = async (entryId: string): Promise<CMSEntry> => {
 
   // Start fetching
   const entryPromise = fetchFromCMS(`/entries/${entryId}`)
-    .then(async (fetched) => {
+    .then(async fetched => {
       const cmsEntry = fetched as CMSEntry
       if (cmsEntry.fields?.image) {
         cmsEntry.fields.image = await resolveAssetLink(cmsEntry.fields.image)

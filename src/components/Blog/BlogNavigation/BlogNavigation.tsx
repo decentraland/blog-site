@@ -18,7 +18,7 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
   const { data: allCategories = [] } = useGetBlogCategoriesQuery()
 
   const categories = useMemo(() => {
-    return allCategories.filter((category) => category.isShownInMenu)
+    return allCategories.filter(category => category.isShownInMenu)
   }, [allCategories])
 
   const isActive = (path: string) => {
@@ -42,7 +42,7 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
                   All articles
                 </CategoryLink>
               </CategoryItem>
-              {categories.map((category) => (
+              {categories.map(category => (
                 <CategoryItem key={category.id}>
                   <CategoryLink to={`/blog/${category.slug}`} $active={isActive(`/blog/${category.slug}`)}>
                     {category.title}

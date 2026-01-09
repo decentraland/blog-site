@@ -1,17 +1,17 @@
-import * as React from 'react'
+import { memo } from 'react'
 import { useMediaQuery } from 'react-responsive'
+import type { BlogPost } from '../../../shared/types/blog.domain'
 import { MainPostCard } from '../MainPostCard'
 import { PostCard } from '../PostCard'
 import type { PostListProps } from './PostList.types'
 import { PostListWrapper } from './PostList.styled'
-import type { BlogPost } from '../../../shared/types/blog.domain'
 
 // Type guard to check if a post is a placeholder
 const isPlaceholder = (post: { id: string; isPlaceholder?: boolean }): post is { id: string; isPlaceholder: true } => {
   return 'isPlaceholder' in post && post.isPlaceholder === true
 }
 
-const PostList = React.memo((props: PostListProps) => {
+const PostList = memo((props: PostListProps) => {
   const { posts, loading, hasMainPost = false } = props
   const isBigScreen = useMediaQuery({ minWidth: 1096 })
 
@@ -37,12 +37,12 @@ const PostList = React.memo((props: PostListProps) => {
   }
 
   // Get first real post for MainPostCard (if applicable)
-  const firstRealPost = posts.find((p) => !isPlaceholder(p)) as BlogPost | undefined
+  const firstRealPost = posts.find(p => !isPlaceholder(p)) as BlogPost | undefined
 
   return (
     <PostListWrapper hasMainPost={hasMainPost}>
       {hasMainPost && isBigScreen && firstRealPost && <MainPostCard post={firstRealPost} />}
-      {posts.map((post) => {
+      {posts.map(post => {
         // Skip the first real post if we're showing it as MainPostCard
         if (hasMainPost && isBigScreen && !isPlaceholder(post) && post === firstRealPost) {
           return null

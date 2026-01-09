@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Box, Skeleton, Typography, styled } from 'decentraland-ui2'
 
 const CardContainer = styled(Box)(({ theme }) => ({

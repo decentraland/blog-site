@@ -8,8 +8,8 @@ import { SEO } from '../components/SEO'
 import { getEnv } from '../config'
 import { useGetBlogCategoryBySlugQuery } from '../features/blog/blog.client'
 import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
-import { CenteredBox } from './CategoryPage.styled'
 import type { BlogCategory } from '../shared/types/blog.domain'
+import { CenteredBox } from './CategoryPage.styled'
 
 const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 

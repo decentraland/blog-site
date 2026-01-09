@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Box, styled } from 'decentraland-ui2'
 
 const HeroContainer = styled(Box)<{ imageUrl: string }>(({ theme, imageUrl }) => ({

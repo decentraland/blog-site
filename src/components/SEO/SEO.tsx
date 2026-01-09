@@ -19,7 +19,7 @@ const SEO = (props: SEOProps) => {
     title,
     description,
     image = DEFAULT_IMAGE,
-    type = OGType.Website,
+    type = OGType.WEBSITE,
     url,
     locale = DEFAULT_LOCALE,
     author,
@@ -63,11 +63,11 @@ const SEO = (props: SEOProps) => {
       {imageData.alt && <meta name="twitter:image:alt" content={imageData.alt} />}
 
       {/* Article specific meta tags */}
-      {type === OGType.Article && author && <meta property="article:author" content={author} />}
-      {type === OGType.Article && publishedTime && <meta property="article:published_time" content={publishedTime} />}
-      {type === OGType.Article && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
-      {type === OGType.Article && section && <meta property="article:section" content={section} />}
-      {type === OGType.Article && tags?.map((tag) => <meta key={tag} property="article:tag" content={tag} />)}
+      {type === OGType.ARTICLE && author && <meta property="article:author" content={author} />}
+      {type === OGType.ARTICLE && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+      {type === OGType.ARTICLE && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+      {type === OGType.ARTICLE && section && <meta property="article:section" content={section} />}
+      {type === OGType.ARTICLE && tags?.map(tag => <meta key={tag} property="article:tag" content={tag} />)}
     </Helmet>
   )
 }
