@@ -1,7 +1,7 @@
 import { TwitterTweetEmbed } from 'react-twitter-embed'
-import { EmbeddedImage, Hyperlink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
-import type { ContentfulAsset } from '../../../shared/types/blog.domain'
 import type { Block, Inline, Text } from '@contentful/rich-text-types'
+import type { ContentfulAsset } from '../../../shared/types/blog.domain'
+import { EmbeddedImage, Hyperlink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
 
 const renderYouTubeEmbed = (uri: string) => {
   const url = new URL(uri)

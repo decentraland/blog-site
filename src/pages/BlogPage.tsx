@@ -5,8 +5,8 @@ import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
 import { SEO } from '../components/SEO'
 import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
-import { ErrorContainer } from './BlogPage.styled'
 import type { BlogPost } from '../shared/types/blog.domain'
+import { ErrorContainer } from './BlogPage.styled'
 
 const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 

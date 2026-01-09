@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Box, styled } from 'decentraland-ui2'
 
 const AuthorContainer = styled(Box)(({ theme }) => ({

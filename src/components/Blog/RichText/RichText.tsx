@@ -1,6 +1,8 @@
-import * as React from 'react'
+import { useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { type Options, documentToReactComponents } from '@contentful/rich-text-react-renderer'
 import { BLOCKS, type Document, INLINES } from '@contentful/rich-text-types'
+import type { ContentfulAsset } from '../../../shared/types/blog.domain'
 import { renderEmbeddedAsset, renderHyperlink } from './RichText.renderers'
 import {
   Blockquote,
@@ -15,7 +17,6 @@ import {
   Paragraph,
   UnorderedList
 } from './RichText.styled'
-import type { ContentfulAsset } from '../../../shared/types/blog.domain'
 
 interface RichTextProps {
   document: Document
@@ -35,17 +36,17 @@ const createRichTextOptions = (assets: Record<string, ContentfulAsset>): Options
     [BLOCKS.OL_LIST]: (_node, children) => <OrderedList>{children}</OrderedList>,
     [BLOCKS.LIST_ITEM]: (_node, children) => <ListItem>{children}</ListItem>,
     [BLOCKS.QUOTE]: (_node, children) => <Blockquote>{children}</Blockquote>,
-    [BLOCKS.EMBEDDED_ASSET]: (node) => renderEmbeddedAsset(node, assets),
-    [INLINES.HYPERLINK]: (node) => renderHyperlink(node)
+    [BLOCKS.EMBEDDED_ASSET]: node => renderEmbeddedAsset(node, assets),
+    [INLINES.HYPERLINK]: node => renderHyperlink(node)
   }
 })
 
-const RichText = ({ document, assets = {} }: RichTextProps): React.ReactNode => {
+const RichText = ({ document, assets = {} }: RichTextProps): ReactNode => {
   if (!document || !document.content) {
     return null
   }
 
-  const options = React.useMemo(() => createRichTextOptions(assets), [assets])
+  const options = useMemo(() => createRichTextOptions(assets), [assets])
 
   return <>{documentToReactComponents(document, options)}</>
 }

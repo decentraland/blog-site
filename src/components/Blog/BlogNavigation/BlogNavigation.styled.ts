@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Link } from 'react-router-dom'
 import { Box, dclColors, styled } from 'decentraland-ui2'
 
@@ -57,7 +58,7 @@ const CategoryItem = styled(Box)(({ theme }) => ({
 })).withComponent('li')
 
 const CategoryLink = styled(Link, {
-  shouldForwardProp: (prop) => prop !== '$active'
+  shouldForwardProp: prop => prop !== '$active'
 })<{ $active: boolean }>(({ theme, $active }) => ({
   color: theme.palette.text.primary,
   display: 'flex',

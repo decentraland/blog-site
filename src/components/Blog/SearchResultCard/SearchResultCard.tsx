@@ -41,7 +41,9 @@ const SearchResultCard = (props: SearchResultCardProps) => {
         <CardContentBox>
           {result.image && <CardImage src={result.image} alt="" />}
           <CardTextBox>
+            {/* eslint-disable-next-line @typescript-eslint/naming-convention */}
             <CardTitle dangerouslySetInnerHTML={{ __html: result.title }} />
+            {/* eslint-disable-next-line @typescript-eslint/naming-convention */}
             <CardDescription dangerouslySetInnerHTML={{ __html: result.description }} />
           </CardTextBox>
         </CardContentBox>

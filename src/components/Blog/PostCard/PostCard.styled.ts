@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Link } from 'react-router-dom'
 import { Box, Card, CardContent, CardMedia, Skeleton, dclColors, styled } from 'decentraland-ui2'
 

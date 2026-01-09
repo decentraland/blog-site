@@ -18,7 +18,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
         address={address || undefined}
         onClickSignIn={authorize}
         onClickSignOut={disconnect}
-        onClickNavbarItem={(event) => {
+        onClickNavbarItem={event => {
           const target = event.currentTarget as HTMLAnchorElement
           if (target?.href) {
             window.location.href = target.href

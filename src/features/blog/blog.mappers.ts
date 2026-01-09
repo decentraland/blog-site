@@ -1,9 +1,9 @@
 import { Document } from '@contentful/rich-text-types'
+import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset } from '../../shared/types/blog.domain'
 import { formatUtcDate } from '../../shared/utils/date'
 import { locations } from '../../shared/utils/locations'
 import { slugify } from '../../shared/utils/string'
 import type { CMSEntry } from './cms.types'
-import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset } from '../../shared/types/blog.domain'
 
 interface ContentfulAssetEntry {
   sys: {

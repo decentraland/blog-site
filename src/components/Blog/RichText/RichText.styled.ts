@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { styled } from 'decentraland-ui2'
 
 const Paragraph = styled('p')(({ theme }) => ({
@@ -60,7 +61,7 @@ const Heading6 = styled(Heading5)(({ theme }) => ({
 }))
 
 const Blockquote = styled('blockquote')(({ theme }) => ({
-  borderLeft: `4px solid`,
+  borderLeft: '4px solid',
   borderColor: theme.palette.primary.main,
   paddingLeft: theme.spacing(2),
   marginTop: theme.spacing(2),

@@ -18,6 +18,7 @@ interface AlgoliaHit {
       }
     }
   }
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   _highlightResult?: {
     title?: {
       value: string

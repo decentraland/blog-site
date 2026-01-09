@@ -1,10 +1,10 @@
-import * as React from 'react'
+import { memo } from 'react'
 import { Typography } from 'decentraland-ui2'
 import type { CategoryHeroProps } from './CategoryHero.types'
 import { HeroContainer, HeroContent } from './CategoryHero.styled'
 
-const CategoryHero = React.memo((CategoryHeroProps: CategoryHeroProps) => {
-  const { category, description, image } = CategoryHeroProps
+const CategoryHero = memo((props: CategoryHeroProps) => {
+  const { category, description, image } = props
   return (
     <HeroContainer imageUrl={image}>
       <HeroContent>

@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from 'redux-persist'
+// eslint-disable-next-line import/no-unresolved
 import storage from 'redux-persist/lib/storage'
 import { blogReducer } from '../features/blog/blog.slice'
 import { algoliaClient, cmsClient } from '../services/client'
@@ -20,7 +21,7 @@ const rootReducer = combineReducers({
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore redux-persist actions

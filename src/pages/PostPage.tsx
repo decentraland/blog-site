@@ -2,11 +2,13 @@ import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { useAppSelector } from '../app/hooks'
+import type { RootState } from '../app/store'
 import { RichText } from '../components/Blog/RichText'
 import { PageLayout } from '../components/PageLayout'
 import { OGType, SEO } from '../components/SEO'
 import { getEnv } from '../config'
 import { useGetBlogPostBySlugQuery } from '../features/blog/blog.client'
+import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
 import { formatUtcDate } from '../shared/utils/date'
 import { locations } from '../shared/utils/locations'
 import {
@@ -26,8 +28,6 @@ import {
   TitleBox,
   TitleText
 } from './PostPage.styled'
-import type { RootState } from '../app/store'
-import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
 
 const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 
@@ -40,7 +40,7 @@ export const PostPage = () => {
     for (const query of Object.values(state.cmsClient.queries)) {
       if (query?.endpointName === 'getBlogPosts' && query.status === 'fulfilled' && query.data) {
         const data = query.data as PaginatedBlogPosts
-        const found = data.posts.find((p) => p.category.slug === categorySlug && p.slug === postSlug)
+        const found = data.posts.find(p => p.category.slug === categorySlug && p.slug === postSlug)
         if (found) return found
       }
     }
@@ -97,7 +97,7 @@ export const PostPage = () => {
         title={displayPost?.title}
         description={displayPost?.description || DEFAULT_DESCRIPTION}
         url={displayPost ? `${baseUrl}/${categorySlug}/${postSlug}` : baseUrl}
-        type={OGType.Article}
+        type={OGType.ARTICLE}
         image={
           displayPost?.image
             ? {

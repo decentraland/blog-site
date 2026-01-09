@@ -1,9 +1,10 @@
 import { BLOCKS } from '@contentful/rich-text-types'
+import { store } from '../../app/store'
+import { cmsClient } from '../../services/client'
+import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 import { getEntrySlug, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
 import { postsUpserted } from './blog.slice'
-import { store } from '../../app/store'
-import { cmsClient } from '../../services/client'
 import type {
   GetBlogAuthorBySlugParams,
   GetBlogAuthorParams,
@@ -14,7 +15,6 @@ import type {
   GetBlogPostsParams
 } from './blog.types'
 import type { CMSEntry, CMSListResponse } from './cms.types'
-import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
 
 // Helper to check if a post is already in the normalized store
 const getPostFromStore = (postId: string): BlogPost | undefined => {
@@ -97,7 +97,7 @@ const resolveBodyAssets = async (body: DocumentNode): Promise<Record<string, Con
   }
 
   const resolvedAssets = await Promise.all(
-    uniqueIds.map(async (id) => {
+    uniqueIds.map(async id => {
       const resolved = await resolveAssetLink({ sys: { type: 'Link', linkType: 'Asset', id } })
       const asset = mapContentfulAsset(resolved as CMSEntry)
       return { id, asset }
@@ -115,7 +115,7 @@ const resolveBodyAssets = async (body: DocumentNode): Promise<Record<string, Con
 }
 
 const blogClient = cmsClient.injectEndpoints({
-  endpoints: (build) => ({
+  endpoints: build => ({
     getBlogPosts: build.query<PaginatedBlogPosts, GetBlogPostsParams>({
       serializeQueryArgs: ({ queryArgs }) => {
         // Cache by category/author only - pagination is handled via merge
@@ -132,8 +132,8 @@ const blogClient = cmsClient.injectEndpoints({
         }
 
         // Merge new posts, avoiding duplicates
-        const existingIds = new Set(currentCache.posts.map((p) => p.id))
-        const newPosts = newItems.posts.filter((p) => !existingIds.has(p.id))
+        const existingIds = new Set(currentCache.posts.map(p => p.id))
+        const newPosts = newItems.posts.filter(p => !existingIds.has(p.id))
 
         return {
           posts: [...currentCache.posts, ...newPosts],
@@ -157,7 +157,7 @@ const blogClient = cmsClient.injectEndpoints({
 
           // Map each entry, using cached posts from normalized store when available
           const batchPosts = await Promise.all(
-            listResponse.items.map(async (item) => {
+            listResponse.items.map(async item => {
               const postId = item.sys?.id
               if (postId) {
                 // Check if post already exists in normalized store
@@ -209,7 +209,7 @@ const blogClient = cmsClient.injectEndpoints({
         }
       },
       keepUnusedDataFor: 60,
-      providesTags: (result) =>
+      providesTags: result =>
         result
           ? [
               ...result.posts.map(({ id }) => ({
@@ -265,8 +265,8 @@ const blogClient = cmsClient.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse) => {
         try {
           // Categories only have image references, resolve them in parallel
-          const resolvedEntries = await Promise.all(listResponse.items.map((item) => resolveImageOnly(item)))
-          return resolvedEntries.map((entry) => mapBlogCategory(entry)).filter((cat): cat is BlogCategory => cat !== null)
+          const resolvedEntries = await Promise.all(listResponse.items.map(item => resolveImageOnly(item)))
+          return resolvedEntries.map(entry => mapBlogCategory(entry)).filter((cat): cat is BlogCategory => cat !== null)
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
@@ -281,7 +281,7 @@ const blogClient = cmsClient.injectEndpoints({
       query: () => ({ url: '/blog/categories' }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
         try {
-          const categoryEntry = listResponse.items.find((item) => {
+          const categoryEntry = listResponse.items.find(item => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
             return getEntrySlug(fields, item.sys.id) === slug
           })
@@ -323,7 +323,7 @@ const blogClient = cmsClient.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse, _meta, { postSlug }) => {
         try {
           // Find the post with matching slug in the response
-          const postEntry = listResponse.items.find((item) => {
+          const postEntry = listResponse.items.find(item => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
             return getEntrySlug(fields, item.sys.id) === postSlug
           })
@@ -380,8 +380,8 @@ const blogClient = cmsClient.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse) => {
         try {
           // Authors only have image references, resolve them in parallel
-          const resolvedEntries = await Promise.all(listResponse.items.map((item) => resolveImageOnly(item)))
-          return resolvedEntries.map((entry) => mapBlogAuthor(entry)).filter((auth): auth is BlogAuthor => auth !== null)
+          const resolvedEntries = await Promise.all(listResponse.items.map(item => resolveImageOnly(item)))
+          return resolvedEntries.map(entry => mapBlogAuthor(entry)).filter((auth): auth is BlogAuthor => auth !== null)
         } catch (error) {
           throw {
             status: 'CUSTOM_ERROR',
@@ -413,7 +413,7 @@ const blogClient = cmsClient.injectEndpoints({
       query: () => ({ url: '/blog/authors' }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
         try {
-          const authorEntry = listResponse.items.find((item) => {
+          const authorEntry = listResponse.items.find(item => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
             return getEntrySlug(fields, item.sys.id) === slug
           })

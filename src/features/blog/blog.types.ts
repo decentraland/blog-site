@@ -9,7 +9,8 @@ interface GetBlogPostsParams {
   author?: string
   limit?: number
   skip?: number
-  _cacheBust?: number // Force unique queries
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  _cacheBust?: number
 }
 
 interface GetBlogPostParams {

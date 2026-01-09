@@ -21,7 +21,9 @@ interface CMSListResponse {
   items: CMSEntry[]
   total: number
   includes?: {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     Entry?: CMSEntry[]
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     Asset?: unknown[]
   }
 }
@@ -30,7 +32,9 @@ interface CMSEntryResponse {
   sys: CMSMetadata
   fields: Record<string, unknown>
   includes?: {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     Entry?: CMSEntry[]
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     Asset?: unknown[]
   }
 }

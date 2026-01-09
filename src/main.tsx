@@ -1,8 +1,9 @@
-import * as React from 'react'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import * as ReactDOM from 'react-dom/client'
+// eslint-disable-next-line import/no-unresolved
 import { PersistGate } from 'redux-persist/integration/react'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
 import { persistor, store } from './app/store'
@@ -33,7 +34,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/service-worker.js')
-      .then((registration) => {
+      .then(registration => {
         // Optional: Add a function to clear cache from console
         if (import.meta.env.DEV) {
           window.clearSWCache = () => {
@@ -41,14 +42,14 @@ if ('serviceWorker' in navigator) {
           }
         }
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('[SW] Service Worker registration failed:', error)
       })
   })
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <DclThemeProvider theme={darkTheme}>
@@ -56,5 +57,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </DclThemeProvider>
       </PersistGate>
     </Provider>
-  </React.StrictMode>
+  </StrictMode>
 )

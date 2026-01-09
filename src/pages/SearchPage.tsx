@@ -6,8 +6,8 @@ import { PageLayout } from '../components/PageLayout'
 import { SEO } from '../components/SEO'
 import { getEnv } from '../config'
 import { useSearchBlogPostsQuery } from '../features/search/search.client'
-import { CenteredBox, HeaderBox, LoadMoreContainer, ResultsWrapper, SearchSubtitle } from './SearchPage.styled'
 import type { SearchResult } from '../shared/types/blog.domain'
+import { CenteredBox, HeaderBox, LoadMoreContainer, ResultsWrapper, SearchSubtitle } from './SearchPage.styled'
 
 const HITS_PER_PAGE = 10
 
@@ -39,13 +39,13 @@ export const SearchPage = () => {
       if (page === 0) {
         setAccumulatedResults(data.results)
       } else {
-        setAccumulatedResults((prev) => [...prev, ...data.results])
+        setAccumulatedResults(prev => [...prev, ...data.results])
       }
     }
   }, [data, page])
 
   const handleLoadMore = () => {
-    setPage((prev) => prev + 1)
+    setPage(prev => prev + 1)
     setTimeout(() => window.scrollBy({ top: 500, left: 0, behavior: 'smooth' }), 0)
   }
 
