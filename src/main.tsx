@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
+// eslint-disable-next-line import/no-unresolved
 import { PersistGate } from 'redux-persist/integration/react'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
 import { persistor, store } from './app/store'
