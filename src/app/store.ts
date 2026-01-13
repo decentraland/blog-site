@@ -1,8 +1,9 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from 'redux-persist'
-// eslint-disable-next-line import/no-unresolved
 import storage from 'redux-persist/lib/storage'
+import { networkReducer, transactionsReducer, walletReducer } from '@dcl/core-web3'
 import { blogReducer } from '../features/blog/blog.slice'
+import { profileClient } from '../features/profile/profile.client'
 import { algoliaClient, cmsClient } from '../services/client'
 
 // Persist config for blog slice only
@@ -15,8 +16,12 @@ const blogPersistConfig = {
 
 const rootReducer = combineReducers({
   blog: persistReducer(blogPersistConfig, blogReducer),
+  network: networkReducer,
+  transactions: transactionsReducer,
+  wallet: walletReducer,
   [cmsClient.reducerPath]: cmsClient.reducer,
-  [algoliaClient.reducerPath]: algoliaClient.reducer
+  [algoliaClient.reducerPath]: algoliaClient.reducer,
+  [profileClient.reducerPath]: profileClient.reducer
 })
 
 const store = configureStore({
@@ -27,7 +32,7 @@ const store = configureStore({
         // Ignore redux-persist actions
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
       }
-    }).concat(cmsClient.middleware, algoliaClient.middleware),
+    }).concat(cmsClient.middleware, algoliaClient.middleware, profileClient.middleware),
   devTools: process.env.NODE_ENV !== 'production'
 })
 

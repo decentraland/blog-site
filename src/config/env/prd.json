@@ -4,5 +4,8 @@
   "ALGOLIA_BLOG_INDEX": "blog_contentful_prd",
   "AUTH_URL": "https://decentraland.org/auth",
   "BLOG_BASE_URL": "https://decentraland.org/blog",
-  "CMS_BASE_URL": "https://cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master"
+  "CMS_BASE_URL": "https://cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master",
+  "MAGIC_API_KEY": "",
+  "PEER_URL": "https://peer.decentraland.org",
+  "WALLET_CONNECT_PROJECT_ID": "61570c542c2d66c659492e5b24a41522"
 }

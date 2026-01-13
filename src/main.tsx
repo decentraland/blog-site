@@ -3,12 +3,13 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
-// eslint-disable-next-line import/no-unresolved
 import { PersistGate } from 'redux-persist/integration/react'
+import { Web3CoreProvider, Web3SyncProvider } from '@dcl/core-web3'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
 import { persistor, store } from './app/store'
 import { blogClient } from './features/blog/blog.client'
 import { initializeHelpers } from './features/blog/blog.helpers'
+import { web3Config } from './features/web3/web3.config'
 import { router } from './routes'
 
 declare global {
@@ -52,9 +53,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <DclThemeProvider theme={darkTheme}>
-          <RouterProvider router={router} />
-        </DclThemeProvider>
+        <Web3CoreProvider config={web3Config}>
+          <Web3SyncProvider>
+            <DclThemeProvider theme={darkTheme}>
+              <RouterProvider router={router} />
+            </DclThemeProvider>
+          </Web3SyncProvider>
+        </Web3CoreProvider>
       </PersistGate>
     </Provider>
   </StrictMode>
