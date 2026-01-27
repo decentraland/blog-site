@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { Box, styled } from 'decentraland-ui2'
 
 const CenteredBox = styled(Box)(({ theme }) => ({

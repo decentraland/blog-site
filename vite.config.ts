@@ -20,13 +20,14 @@ export default defineConfig(({ command, mode }) => {
     },
     ...(command === 'build' ? { base: envVariables.VITE_BASE_URL || '/' } : undefined),
     server: {
+      /* eslint-disable @typescript-eslint/naming-convention */
       proxy: {
         '/api/cms': {
           target: 'https://cms.decentraland.zone',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/cms/, '/spaces/ea2ybdmmn1kv/environments/master'),
-          configure: (proxy) => {
-            proxy.on('error', (err) => {
+          rewrite: path => path.replace(/^\/api\/cms/, '/spaces/ea2ybdmmn1kv/environments/master'),
+          configure: proxy => {
+            proxy.on('error', err => {
               console.log('[Vite Proxy] Error:', err)
             })
             proxy.on('proxyReq', (proxyReq, req) => {
@@ -36,8 +37,23 @@ export default defineConfig(({ command, mode }) => {
               console.log('[Vite Proxy] Received Response:', req.url, '→', proxyRes.statusCode)
             })
           }
+        },
+        '/auth': {
+          target: 'https://decentraland.zone',
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+          configure: proxy => {
+            proxy.on('proxyReq', (proxyReq, req) => {
+              console.log('[Vite Proxy] Auth Request:', req.method, req.url, '→', proxyReq.path)
+            })
+            proxy.on('proxyRes', (proxyRes, req) => {
+              console.log('[Vite Proxy] Auth Response:', req.url, '→', proxyRes.statusCode)
+            })
+          }
         }
       }
+      /* eslint-enable @typescript-eslint/naming-convention */
     }
   }
 })

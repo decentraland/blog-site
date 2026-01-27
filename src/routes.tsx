@@ -5,6 +5,7 @@ import { CategoryPage } from './pages/CategoryPage'
 import { PostPage } from './pages/PostPage'
 import { PreviewPage } from './pages/PreviewPage'
 import { SearchPage } from './pages/SearchPage'
+import { SignInRedirect } from './pages/SignInRedirect'
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
   {
     path: '/blog/search',
     element: <SearchPage />
+  },
+  {
+    path: '/blog/sign-in',
+    element: <SignInRedirect />
   },
   {
     path: '/blog/author/:authorSlug',

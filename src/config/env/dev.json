@@ -2,6 +2,10 @@
   "ALGOLIA_APP_ID": "1H67SAMO2T",
   "ALGOLIA_API_KEY": "d7f493e3a24525b7021451b81b1d294a",
   "ALGOLIA_BLOG_INDEX": "blog_contentful_prd",
-  "BLOG_BASE_URL": "http://localhost:3000/blog",
-  "CMS_BASE_URL": "https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master"
+  "AUTH_URL": "/auth",
+  "BLOG_BASE_URL": "/blog",
+  "CMS_BASE_URL": "https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master",
+  "MAGIC_API_KEY": "pk_live_CE856A4938B36648",
+  "PEER_URL": "https://peer.decentraland.zone",
+  "WALLET_CONNECT_PROJECT_ID": "61570c542c2d66c659492e5b24a41522"
 }

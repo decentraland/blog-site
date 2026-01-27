@@ -10,9 +10,6 @@ updates:
     open-pull-requests-limit: 20
     schedule:
       interval: "weekly"
-    allow:
-      - dependency-name: "@dcl/*"
-      - dependency-name: "dcl-*"
     versioning-strategy: auto
     commit-message:
       prefix: "chore: "

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type { Theme } from '@mui/material'
 import { Box, styled } from 'decentraland-ui2'
 
