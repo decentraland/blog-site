@@ -55,7 +55,7 @@
     "@types/react-router-dom": "5.3.3",
     "@typescript-eslint/eslint-plugin": "8.54.0",
     "@typescript-eslint/parser": "8.54.0",
-    "@vercel/node": "5.5.16",
+    "@vercel/node": "5.5.28",
     "@vitejs/plugin-react": "4.3.1",
     "babel-plugin-module-resolver": "5.0.2",
     "eslint": "9.39.2",
