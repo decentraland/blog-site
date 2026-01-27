@@ -22,7 +22,7 @@
   "dependencies": {
     "@dcl/core-web3": "^0.2.0",
     "@dcl/hooks": "^1.0.0",
-    "@dcl/schemas": "^22.0.0",
+    "@dcl/schemas": "^22.3.0",
     "@dcl/ui-env": "2.0.0",
     "@magic-ext/oauth2": "15.0.0",
     "@reduxjs/toolkit": "2.9.2",
