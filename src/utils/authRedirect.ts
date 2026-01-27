@@ -1,3 +1,4 @@
+import { clearWagmiState } from '@dcl/core-web3'
 import { getEnv } from '../config'
 
 /**
@@ -28,28 +29,6 @@ function buildAuthRedirectUrl(path: string, queryParams?: Record<string, string>
   // Remove the origin, keep only pathname + search
   const pathWithQuery = url.pathname + url.search
   return `${basename}${pathWithQuery}`
-}
-
-/**
- * Clears wagmi localStorage state before redirecting to auth.
- *
- * This is necessary because wagmi trusts its stored state. If the user was
- * disconnected before going to auth, wagmi has saved {connections: [], current: null}.
- * When returning from auth (even though MetaMask is now authorized), wagmi loads
- * this "disconnected" state and doesn't re-check authorization.
- *
- * The auth site doesn't update our wagmi state (it may use different config/storage),
- * so we clear it before redirecting to ensure a fresh reconnection on return.
- */
-function clearWagmiState(): void {
-  const keysToRemove: string[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key?.startsWith('wagmi.')) {
-      keysToRemove.push(key)
-    }
-  }
-  keysToRemove.forEach(key => localStorage.removeItem(key))
 }
 
 /**
