@@ -1,20 +1,65 @@
 import { useCallback, useMemo } from 'react'
-import { useWallet } from '@dcl/core-web3'
-import { Navbar, NavbarPages, type NavbarProps } from 'decentraland-ui2'
+import type { Address } from 'viem'
+import { useTokenBalance, useWallet } from '@dcl/core-web3'
+import { ChainId, Network } from '@dcl/schemas'
+import { Env } from '@dcl/ui-env'
+import { FooterLanding, ManaBalancesProps, Navbar, NavbarPages, type NavbarProps } from 'decentraland-ui2'
+import { config, getEnv } from '../../config'
 import { useGetProfileQuery } from '../../features/profile/profile.client'
 import { redirectToAuth } from '../../utils/authRedirect'
 import { BlogNavigation } from '../Blog/BlogNavigation'
 import type { PageLayoutProps } from './PageLayout.types'
 import { ContentWrapper, PageContainer } from './PageLayout.styled'
 
+const isProd = config.is(Env.PRODUCTION)
+
+const parseTokenBalance = (balance: string | null) => {
+  if (balance === null) {
+    return undefined
+  }
+
+  const parsed = Number(balance)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
 export function PageLayout({ children, activeCategory, showBlogNavigation = false }: PageLayoutProps) {
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
+
+  const { balance: manaBalanceEthereum } = useTokenBalance({
+    tokenAddress: getEnv('MANA_TOKEN_ADDRESS_ETHEREUM') as Address,
+    chainId: isProd ? ChainId.ETHEREUM_MAINNET : ChainId.ETHEREUM_SEPOLIA
+  })
+
+  const { balance: manaBalanceMatic } = useTokenBalance({
+    tokenAddress: getEnv('MANA_TOKEN_ADDRESS_MATIC') as Address,
+    chainId: isProd ? ChainId.MATIC_MAINNET : ChainId.MATIC_AMOY
+  })
 
   // Load user profile for avatar display
   const { data: profile } = useGetProfileQuery(address ?? undefined, {
     skip: !address
   })
   const avatar = profile?.avatars?.[0]
+
+  const manaBalances = useMemo(() => {
+    if (!isConnected) {
+      return {}
+    }
+
+    const balances: ManaBalancesProps['manaBalances'] = {}
+    const ethereumBalance = parseTokenBalance(manaBalanceEthereum)
+    const maticBalance = parseTokenBalance(manaBalanceMatic)
+
+    if (ethereumBalance !== undefined) {
+      balances[Network.ETHEREUM] = ethereumBalance
+    }
+
+    if (maticBalance !== undefined) {
+      balances[Network.MATIC] = maticBalance
+    }
+
+    return balances
+  }, [isConnected, manaBalanceEthereum, manaBalanceMatic])
 
   const handleSignIn = useCallback(() => {
     const currentPath = window.location.pathname + window.location.search
@@ -35,6 +80,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
         isDisconnecting,
         address: address || undefined,
         avatar,
+        manaBalances: manaBalances as ManaBalancesProps['manaBalances'],
         onClickSignIn: handleSignIn,
         onClickSignOut: handleSignOut,
         onClickNavbarItem: (event: React.MouseEvent<HTMLElement>) => {
@@ -44,7 +90,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
           }
         }
       }) as NavbarProps,
-    [isConnected, isConnecting, isDisconnecting, address, avatar, handleSignIn, handleSignOut]
+    [isConnected, isConnecting, isDisconnecting, address, avatar, manaBalances, handleSignIn, handleSignOut]
   )
 
   return (
@@ -52,6 +98,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
       <Navbar {...navbarProps} />
       {showBlogNavigation && <BlogNavigation active={activeCategory} />}
       <ContentWrapper>{children}</ContentWrapper>
+      <FooterLanding />
     </PageContainer>
   )
 }

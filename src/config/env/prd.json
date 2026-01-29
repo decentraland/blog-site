@@ -6,6 +6,8 @@
   "BLOG_BASE_URL": "https://decentraland.org/blog",
   "CMS_BASE_URL": "https://cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master",
   "MAGIC_API_KEY": "pk_live_212568025B158355",
+  "MANA_TOKEN_ADDRESS_ETHEREUM": "0x0f5d2fb29fb7d3cfee444a200298f468908cc942",
+  "MANA_TOKEN_ADDRESS_MATIC": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
   "PEER_URL": "https://peer.decentraland.org",
   "WALLET_CONNECT_PROJECT_ID": "61570c542c2d66c659492e5b24a41522"
 }
