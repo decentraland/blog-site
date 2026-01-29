@@ -3,11 +3,12 @@ import { useParams } from 'react-router-dom'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { useAppSelector } from '../app/hooks'
 import type { RootState } from '../app/store'
+import { RelatedPost } from '../components/Blog/RelatedPost'
 import { RichText } from '../components/Blog/RichText'
 import { PageLayout } from '../components/PageLayout'
 import { OGType, SEO } from '../components/SEO'
 import { getEnv } from '../config'
-import { useGetBlogPostBySlugQuery } from '../features/blog/blog.client'
+import { useGetBlogPostBySlugQuery, useGetBlogPostsQuery } from '../features/blog/blog.client'
 import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
 import { formatUtcDate } from '../shared/utils/date'
 import { locations } from '../shared/utils/locations'
@@ -30,6 +31,9 @@ import {
 } from './PostPage.styled'
 
 const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
+const RELATED_POSTS_COUNT = 3
+const RELATED_POSTS_FETCH_MULTIPLIER = 10
+const RELATED_POSTS_FETCH_LIMIT = RELATED_POSTS_COUNT * RELATED_POSTS_FETCH_MULTIPLIER
 
 export const PostPage = () => {
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>()
@@ -64,6 +68,25 @@ export const PostPage = () => {
 
   // Use cached post if available, otherwise use fetched post
   const displayPost = useMemo(() => cachedPost || post, [cachedPost, post])
+
+  const { data: relatedPostsData, isLoading: isRelatedPostsLoading } = useGetBlogPostsQuery(
+    {
+      category: displayPost?.category.id,
+      limit: RELATED_POSTS_FETCH_LIMIT,
+      skip: 0
+    },
+    {
+      skip: !displayPost?.category.id
+    }
+  )
+
+  const relatedPosts = useMemo(() => {
+    if (!relatedPostsData?.posts || !displayPost) {
+      return []
+    }
+
+    return relatedPostsData.posts.filter(postItem => postItem.id !== displayPost.id)
+  }, [displayPost, relatedPostsData?.posts])
 
   const publishedDateUtc = useMemo(() => formatUtcDate(displayPost?.publishedDate), [displayPost?.publishedDate])
   const author = displayPost?.author
@@ -141,6 +164,7 @@ export const PostPage = () => {
           <RichText document={displayPost.body} assets={displayPost.bodyAssets} />
         </BodyContainer>
       </ContentContainer>
+      <RelatedPost posts={relatedPosts} loading={isRelatedPostsLoading} maxItems={RELATED_POSTS_COUNT} />
     </PageLayout>
   )
 }
