@@ -2,16 +2,16 @@ import { useCallback, useMemo } from 'react'
 import type { Address } from 'viem'
 import { useTokenBalance, useWallet } from '@dcl/core-web3'
 import { ChainId, Network } from '@dcl/schemas'
+import { Env } from '@dcl/ui-env'
 import { FooterLanding, ManaBalancesProps, Navbar, NavbarPages, type NavbarProps } from 'decentraland-ui2'
-import { getEnv } from '../../config'
+import { config, getEnv } from '../../config'
 import { useGetProfileQuery } from '../../features/profile/profile.client'
 import { redirectToAuth } from '../../utils/authRedirect'
 import { BlogNavigation } from '../Blog/BlogNavigation'
 import type { PageLayoutProps } from './PageLayout.types'
 import { ContentWrapper, PageContainer } from './PageLayout.styled'
 
-const manaTokenAddressEthereum = getEnv('MANA_TOKEN_ADDRESS_ETHEREUM') as Address | undefined
-const manaTokenAddressMatic = getEnv('MANA_TOKEN_ADDRESS_MATIC') as Address | undefined
+const isProd = config.is(Env.PRODUCTION)
 
 const parseTokenBalance = (balance: string | null) => {
   if (balance === null) {
@@ -26,13 +26,13 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
 
   const { balance: manaBalanceEthereum } = useTokenBalance({
-    tokenAddress: manaTokenAddressEthereum,
-    chainId: ChainId.ETHEREUM_MAINNET
+    tokenAddress: getEnv('MANA_TOKEN_ADDRESS_ETHEREUM') as Address,
+    chainId: isProd ? ChainId.ETHEREUM_MAINNET : ChainId.ETHEREUM_SEPOLIA
   })
 
   const { balance: manaBalanceMatic } = useTokenBalance({
-    tokenAddress: manaTokenAddressMatic,
-    chainId: ChainId.MATIC_MAINNET
+    tokenAddress: getEnv('MANA_TOKEN_ADDRESS_MATIC') as Address,
+    chainId: isProd ? ChainId.MATIC_MAINNET : ChainId.MATIC_AMOY
   })
 
   // Load user profile for avatar display
