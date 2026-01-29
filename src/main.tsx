@@ -11,7 +11,7 @@ import { persistor, store } from './app/store'
 import { blogClient } from './features/blog/blog.client'
 import { initializeHelpers } from './features/blog/blog.helpers'
 import { web3Config } from './features/web3/web3.config'
-import { en } from './intl/en'
+import en from './intl/en.json'
 import { router } from './routes'
 
 declare global {
