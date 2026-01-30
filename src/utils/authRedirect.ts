@@ -58,15 +58,28 @@ function resolveAuthUrl(): string {
 }
 
 /**
+ * Resolves the path to redirect to after login from the current URL.
+ * If the URL has a redirectTo query param, uses it; otherwise uses pathname + search.
+ */
+function getRedirectPathFromCurrentUrl(): string {
+  const pathname = window.location.pathname
+  const search = window.location.search
+  const searchParams = new URLSearchParams(search)
+  const currentRedirectTo = searchParams.get('redirectTo')
+  return currentRedirectTo ?? `${pathname}${search}`
+}
+
+/**
  * Redirects to the authentication URL with the specified redirect path.
- * @param path - The path to redirect to after authentication
+ * When path is omitted, resolves it from the current URL (respecting redirectTo query param).
+ * @param path - Optional path to redirect to after authentication (defaults to current URL)
  * @param queryParams - Optional query parameters to append to the path
  */
-function redirectToAuth(path: string, queryParams?: Record<string, string>): void {
-  const redirectTo = buildAuthRedirectUrl(path, queryParams)
+function redirectToAuth(path?: string, queryParams?: Record<string, string>): void {
+  const redirectPath = path ?? getRedirectPathFromCurrentUrl()
+  const redirectTo = buildAuthRedirectUrl(redirectPath, queryParams)
   const authUrl = resolveAuthUrl()
 
-  // Clear stale wagmi state to ensure fresh reconnection on return
   clearWagmiState()
 
   window.location.replace(`${authUrl}/login?redirectTo=${encodeURIComponent(redirectTo)}`)
