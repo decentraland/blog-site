@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Link } from 'react-router-dom'
-import { Box, Card, CardContent, CardMedia, Skeleton, dclColors, styled } from 'decentraland-ui2'
+import { Box, Card, CardContent, Skeleton, dclColors, styled } from 'decentraland-ui2'
 
 const CardContainer = styled(Card)(() => ({
   display: 'flex',
@@ -28,7 +28,9 @@ const CardContainer = styled(Card)(() => ({
   }
 }))
 
-const CardImage = styled(CardMedia)<{ $imageUrl: string }>(({ $imageUrl }) => ({
+const CardImage = styled(Box, {
+  shouldForwardProp: prop => prop !== '$imageUrl'
+})<{ $imageUrl: string }>(({ $imageUrl }) => ({
   backgroundImage: `url("${$imageUrl}")`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',

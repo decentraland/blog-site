@@ -5,7 +5,9 @@ import { ChainId, Network } from '@dcl/schemas'
 import { Env } from '@dcl/ui-env'
 import { FooterLanding, ManaBalancesProps, Navbar, NavbarPages, type NavbarProps } from 'decentraland-ui2'
 import { config, getEnv } from '../../config'
+import { usePageNotifications } from '../../features/notifications/usePageNotifications'
 import { useGetProfileQuery } from '../../features/profile/profile.client'
+import { useAuthIdentity } from '../../hooks/useAuthIdentity'
 import { redirectToAuth } from '../../utils/authRedirect'
 import { BlogNavigation } from '../Blog/BlogNavigation'
 import type { PageLayoutProps } from './PageLayout.types'
@@ -24,6 +26,16 @@ const parseTokenBalance = (balance: string | null) => {
 
 export function PageLayout({ children, activeCategory, showBlogNavigation = false }: PageLayoutProps) {
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
+
+  // Auth identity for signed requests (notifications, etc.)
+  const { identity } = useAuthIdentity()
+
+  // Notifications - only enabled when we have a valid identity
+  const { notificationProps } = usePageNotifications({
+    identity,
+    isConnected,
+    locale: 'en'
+  })
 
   const { balance: manaBalanceEthereum } = useTokenBalance({
     tokenAddress: getEnv('MANA_TOKEN_ADDRESS_ETHEREUM') as Address,
@@ -81,6 +93,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
         address: address || undefined,
         avatar,
         manaBalances: manaBalances as ManaBalancesProps['manaBalances'],
+        notifications: notificationProps,
         onClickSignIn: handleSignIn,
         onClickSignOut: handleSignOut,
         onClickNavbarItem: (event: React.MouseEvent<HTMLElement>) => {
@@ -90,7 +103,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
           }
         }
       }) as NavbarProps,
-    [isConnected, isConnecting, isDisconnecting, address, avatar, manaBalances, handleSignIn, handleSignOut]
+    [isConnected, isConnecting, isDisconnecting, address, avatar, manaBalances, notificationProps, handleSignIn, handleSignOut]
   )
 
   return (

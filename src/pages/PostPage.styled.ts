@@ -101,7 +101,7 @@ const AuthorName = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.primary
 }))
 
-const BodyContainer = styled(Box)()
+const BodyContainer = styled(Box)(() => ({}))
 
 export {
   AuthorAvatar,
