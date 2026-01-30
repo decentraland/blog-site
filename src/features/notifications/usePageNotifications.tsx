@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AuthIdentity } from 'decentraland-crypto-fetch'
 import { useNotifications } from '@dcl/hooks'
+import type { AuthIdentity } from 'decentraland-crypto-fetch'
 import { NotificationActiveTab, Profile, dclAddressUtils } from 'decentraland-ui2'
 import type { NotificationLocale, NotificationsProps } from 'decentraland-ui2'
 import { getEnv } from '../../config'
@@ -20,8 +20,7 @@ function usePageNotifications(props: UsePageNotificationsProps): UsePageNotifica
 
   const isNotificationsEnabled = Boolean(identity && isConnected)
   const [isPollingEnabled, setIsPollingEnabled] = useState(true)
-  const notificationsUrl =
-    getEnv('NOTIFICATIONS_API_URL') ?? 'https://notifications.decentraland.org'
+  const notificationsUrl = getEnv('NOTIFICATIONS_API_URL') ?? 'https://notifications.decentraland.org'
 
   useEffect(() => {
     if (!isNotificationsEnabled) {
