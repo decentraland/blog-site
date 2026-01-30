@@ -34,39 +34,47 @@ function buildAuthRedirectUrl(path: string, queryParams?: Record<string, string>
 /**
  * Resolves the auth URL based on environment and host.
  * - If AUTH_URL is absolute (http/https), use it directly
- * - If AUTH_URL is relative and we're on localhost, use relative path (for Vite proxy)
- * - If AUTH_URL is relative and we're NOT on localhost (Vercel preview), use staging URL
+ * - If AUTH_URL is relative: use same origin + path so Vercel rewrite /auth -> decentraland.zone/auth applies
  */
 function resolveAuthUrl(): string {
   const authUrl = getEnv('AUTH_URL') ?? '/auth'
 
-  // If it's an absolute URL, use it directly
   if (authUrl.startsWith('http')) {
     return authUrl
   }
 
-  // For relative URLs, check if we're on localhost
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
   if (isLocalhost) {
-    // Use relative path for Vite proxy in local development
     return authUrl
   }
 
-  // On Vercel preview deploys (non-localhost, non-decentraland domain), use staging auth
-  return 'https://decentraland.zone/auth'
+  return `${window.location.origin}${authUrl.startsWith('/') ? '' : '/'}${authUrl}`
+}
+
+/**
+ * Resolves the path to redirect to after login from the current URL.
+ * If the URL has a redirectTo query param, uses it; otherwise uses pathname + search.
+ */
+function getRedirectPathFromCurrentUrl(): string {
+  const pathname = window.location.pathname
+  const search = window.location.search
+  const searchParams = new URLSearchParams(search)
+  const currentRedirectTo = searchParams.get('redirectTo')
+  return currentRedirectTo ?? `${pathname}${search}`
 }
 
 /**
  * Redirects to the authentication URL with the specified redirect path.
- * @param path - The path to redirect to after authentication
+ * When path is omitted, resolves it from the current URL (respecting redirectTo query param).
+ * @param path - Optional path to redirect to after authentication (defaults to current URL)
  * @param queryParams - Optional query parameters to append to the path
  */
-function redirectToAuth(path: string, queryParams?: Record<string, string>): void {
-  const redirectTo = buildAuthRedirectUrl(path, queryParams)
+function redirectToAuth(path?: string, queryParams?: Record<string, string>): void {
+  const redirectPath = path ?? getRedirectPathFromCurrentUrl()
+  const redirectTo = buildAuthRedirectUrl(redirectPath, queryParams)
   const authUrl = resolveAuthUrl()
 
-  // Clear stale wagmi state to ensure fresh reconnection on return
   clearWagmiState()
 
   window.location.replace(`${authUrl}/login?redirectTo=${encodeURIComponent(redirectTo)}`)

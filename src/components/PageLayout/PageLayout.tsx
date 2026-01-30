@@ -74,8 +74,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
   }, [isConnected, manaBalanceEthereum, manaBalanceMatic])
 
   const handleSignIn = useCallback(() => {
-    const currentPath = window.location.pathname + window.location.search
-    redirectToAuth(currentPath)
+    redirectToAuth()
   }, [])
 
   const handleSignOut = useCallback(() => {
