@@ -34,27 +34,22 @@ function buildAuthRedirectUrl(path: string, queryParams?: Record<string, string>
 /**
  * Resolves the auth URL based on environment and host.
  * - If AUTH_URL is absolute (http/https), use it directly
- * - If AUTH_URL is relative and we're on localhost, use relative path (for Vite proxy)
- * - If AUTH_URL is relative and we're NOT on localhost (Vercel preview), use staging URL
+ * - If AUTH_URL is relative: use same origin + path so Vercel rewrite /auth -> decentraland.zone/auth applies
  */
 function resolveAuthUrl(): string {
   const authUrl = getEnv('AUTH_URL') ?? '/auth'
 
-  // If it's an absolute URL, use it directly
   if (authUrl.startsWith('http')) {
     return authUrl
   }
 
-  // For relative URLs, check if we're on localhost
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
   if (isLocalhost) {
-    // Use relative path for Vite proxy in local development
     return authUrl
   }
 
-  // On Vercel preview deploys (non-localhost, non-decentraland domain), use staging auth
-  return 'https://decentraland.zone/auth'
+  return `${window.location.origin}${authUrl.startsWith('/') ? '' : '/'}${authUrl}`
 }
 
 /**
