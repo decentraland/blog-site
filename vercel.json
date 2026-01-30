@@ -5,6 +5,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/auth/:match*",
+      "destination": "https://decentraland.zone/auth/:match*"
+    },
+    {
       "source": "/blog/:path*",
       "has": [
         {
@@ -49,8 +53,8 @@
       "destination": "/api/seo?path=/blog"
     },
     {
-      "source": "/((?!api|assets|favicon.ico|manifest.json|service-worker.js|sitemap.xml|robots.txt).*)",
-      "destination": "/index.html"
+      "source": "/(.*)",
+      "destination": "/"
     }
   ],
   "headers": [
