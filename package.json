@@ -20,10 +20,10 @@
     "lint:pkg": "npmPkgJsonLint ."
   },
   "dependencies": {
-    "@contentful/rich-text-react-renderer": "^16.1.1",
-    "@contentful/rich-text-types": "^17.0.0",
+    "@contentful/rich-text-react-renderer": "16.1.6",
+    "@contentful/rich-text-types": "17.2.5",
     "@dcl/core-web3": "^0.2.0",
-    "@dcl/hooks": "file:../hooks/dcl-hooks-0.0.0-development5.tgz",
+    "@dcl/hooks": "^1.2.0",
     "@dcl/schemas": "^22.0.0",
     "@dcl/single-sign-on-client": "^0.1.0",
     "@dcl/ui-env": "2.0.0",
