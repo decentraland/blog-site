@@ -36,7 +36,6 @@ const NavbarCategories = styled(Box)(({ theme }) => ({
   overflowX: 'auto',
   overflowY: 'hidden',
   width: 'auto',
-
   '@media (max-width: 1450px)': {
     width: '100%',
     paddingBottom: theme.spacing(1)
@@ -64,7 +63,7 @@ const CategoryLink = styled(Link, {
   display: 'flex',
   alignItems: 'center',
   fontSize: '17px',
-  fontWeight: 400,
+  fontWeight: $active ? 700 : 400,
   height: '64px',
   padding: 0,
   position: 'relative',
