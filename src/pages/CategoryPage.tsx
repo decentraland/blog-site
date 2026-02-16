@@ -27,12 +27,7 @@ const CategoryPostList = ({ category }: { category: BlogCategory }) => {
     )
   }
 
-  return (
-    <>
-      <CategoryHero category={category.title} description={category.description} image={category.image.url} />
-      <PostList posts={posts} loading={isLoadingInitial} hasMainPost={!isMobile} />
-    </>
-  )
+  return <PostList posts={posts} loading={isLoadingInitial} hasMainPost={!isMobile} />
 }
 
 export const CategoryPage = () => {
@@ -60,7 +55,13 @@ export const CategoryPage = () => {
   }
 
   return (
-    <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
+    <PageLayout
+      showBlogNavigation={true}
+      activeCategory={categorySlug}
+      fullWidthContent={
+        category ? <CategoryHero category={category.title} description={category.description} image={category.image.url} /> : undefined
+      }
+    >
       <SEO
         title={category?.title}
         description={category?.description || t('blog.default_description')}

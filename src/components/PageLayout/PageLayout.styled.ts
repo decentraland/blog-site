@@ -11,7 +11,10 @@ const ContentWrapper = styled(Box)(({ theme }) => ({
   flex: 1,
   padding: theme.spacing(5, 0, 2, 0),
   maxWidth: theme.spacing(133),
-  margin: '0 auto'
+  margin: '0 auto',
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(5, 2, 2, 2)
+  }
 }))
 
 export { ContentWrapper, PageContainer }

@@ -24,7 +24,7 @@ const parseTokenBalance = (balance: string | null) => {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
-export function PageLayout({ children, activeCategory, showBlogNavigation = false }: PageLayoutProps) {
+export function PageLayout({ children, activeCategory, fullWidthContent, showBlogNavigation = false }: PageLayoutProps) {
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
 
   // Auth identity for signed requests (notifications, etc.)
@@ -109,6 +109,7 @@ export function PageLayout({ children, activeCategory, showBlogNavigation = fals
     <PageContainer>
       <Navbar {...navbarProps} />
       {showBlogNavigation && <BlogNavigation active={activeCategory} />}
+      {fullWidthContent}
       <ContentWrapper>{children}</ContentWrapper>
       <FooterLanding />
     </PageContainer>

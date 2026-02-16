@@ -6,13 +6,13 @@ const HeroContainer = styled(Box)<{ imageUrl: string }>(({ theme, imageUrl }) =>
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   width: '100%',
-  minHeight: '400px',
+  height: '248px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   marginBottom: theme.spacing(6),
   [theme.breakpoints.down('sm')]: {
-    minHeight: '300px'
+    height: '180px'
   }
 }))
 
