@@ -1,5 +1,10 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
+// eslint-disable-next-line @typescript-eslint/naming-convention
+import FacebookIcon from '@mui/icons-material/Facebook'
+// eslint-disable-next-line @typescript-eslint/naming-convention
+import XIcon from '@mui/icons-material/X'
+import { useTranslation } from '@dcl/hooks'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { useAppSelector } from '../app/hooks'
 import type { RootState } from '../app/store'
@@ -17,6 +22,7 @@ import {
   AuthorBox,
   AuthorLink,
   AuthorName,
+  AuthorRow,
   BodyContainer,
   CategoryMetaLink,
   CenteredBox,
@@ -25,6 +31,9 @@ import {
   MetaSeparator,
   MetaText,
   PostImage,
+  ShareContainer,
+  ShareLabel,
+  ShareLink,
   SubtitleText,
   TitleBox,
   TitleText
@@ -36,6 +45,7 @@ const RELATED_POSTS_FETCH_MULTIPLIER = 10
 const RELATED_POSTS_FETCH_LIMIT = RELATED_POSTS_COUNT * RELATED_POSTS_FETCH_MULTIPLIER
 
 export const PostPage = () => {
+  const { t } = useTranslation()
   const { categorySlug, postSlug } = useParams<{ categorySlug: string; postSlug: string }>()
 
   // Try to find the post in any cached getBlogPosts query
@@ -152,12 +162,23 @@ export const PostPage = () => {
         </HeaderBox>
 
         {showAuthor && (
-          <AuthorBox>
-            <AuthorLink to={author.url}>
-              {author.image?.url && <AuthorAvatar src={author.image.url} alt={author.title} />}
-              <AuthorName variant="body2">{author.title}</AuthorName>
-            </AuthorLink>
-          </AuthorBox>
+          <AuthorRow>
+            <AuthorBox>
+              <AuthorLink to={author.url}>
+                {author.image?.url && <AuthorAvatar src={author.image.url} alt={author.title} />}
+                <AuthorName variant="body2">{author.title}</AuthorName>
+              </AuthorLink>
+            </AuthorBox>
+            <ShareContainer>
+              <ShareLabel>{t('share')}</ShareLabel>
+              <ShareLink href={locations.twitter(displayPost)} target="_blank" rel="noopener noreferrer">
+                <XIcon fontSize="small" />
+              </ShareLink>
+              <ShareLink href={locations.facebook(displayPost)} target="_blank" rel="noopener noreferrer">
+                <FacebookIcon fontSize="small" />
+              </ShareLink>
+            </ShareContainer>
+          </AuthorRow>
         )}
 
         <BodyContainer>
