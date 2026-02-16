@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useGetBlogCategoriesQuery } from '../../../features/blog/blog.client'
 import { Search } from '../Search'
@@ -21,15 +21,18 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
     return allCategories.filter(category => category.isShownInMenu)
   }, [allCategories])
 
-  const isActive = (path: string) => {
-    if (active) {
-      if (active === 'all_articles' && path === '/blog') {
-        return true
+  const isActive = useCallback(
+    (path: string) => {
+      if (active) {
+        if (active === 'all_articles' && path === '/blog') {
+          return true
+        }
+        return `/blog/${active}` === path
       }
-      return active === path
-    }
-    return location.pathname === path
-  }
+      return location.pathname === path
+    },
+    [active, location.pathname]
+  )
 
   return (
     <NavbarContainer>
