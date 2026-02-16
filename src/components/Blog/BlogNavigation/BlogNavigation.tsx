@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useTranslation } from '@dcl/hooks'
 import { useGetBlogCategoriesQuery } from '../../../features/blog/blog.client'
 import { Search } from '../Search'
 import type { BlogNavigationProps } from './BlogNavigation.types'
@@ -14,6 +15,7 @@ import {
 } from './BlogNavigation.styled'
 
 const BlogNavigation = ({ active }: BlogNavigationProps) => {
+  const { t } = useTranslation()
   const location = useLocation()
   const { data: allCategories = [] } = useGetBlogCategoriesQuery()
 
@@ -42,7 +44,7 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
             <CategoryList>
               <CategoryItem>
                 <CategoryLink to="/blog" $active={isActive('/blog') || active === 'all_articles'}>
-                  All articles
+                  {t('blog.all_articles')}
                 </CategoryLink>
               </CategoryItem>
               {categories.map(category => (

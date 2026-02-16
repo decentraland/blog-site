@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom'
+import { useTranslation } from '@dcl/hooks'
 import { useMobileMediaQuery } from 'decentraland-ui2/dist/components/Media'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { CategoryHero } from '../components/Blog/CategoryHero'
@@ -11,9 +12,8 @@ import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
 import type { BlogCategory } from '../shared/types/blog.domain'
 import { CenteredBox } from './CategoryPage.styled'
 
-const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
-
 const CategoryPostList = ({ category }: { category: BlogCategory }) => {
+  const { t } = useTranslation()
   const isMobile = useMobileMediaQuery()
   const { posts, isLoadingInitial, error } = useInfiniteBlogPosts({
     category: category.id
@@ -22,7 +22,7 @@ const CategoryPostList = ({ category }: { category: BlogCategory }) => {
   if (error) {
     return (
       <CenteredBox>
-        <Typography color="error">Failed to load posts. Please try again later.</Typography>
+        <Typography color="error">{t('error.load_posts')}</Typography>
       </CenteredBox>
     )
   }
@@ -36,6 +36,7 @@ const CategoryPostList = ({ category }: { category: BlogCategory }) => {
 }
 
 export const CategoryPage = () => {
+  const { t } = useTranslation()
   const { categorySlug } = useParams<{ categorySlug: string }>()
 
   const {
@@ -52,7 +53,7 @@ export const CategoryPage = () => {
     return (
       <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
         <CenteredBox>
-          <Typography color="error">Failed to load category. Please try again later.</Typography>
+          <Typography color="error">{t('error.load_category')}</Typography>
         </CenteredBox>
       </PageLayout>
     )
@@ -62,7 +63,7 @@ export const CategoryPage = () => {
     <PageLayout showBlogNavigation={true} activeCategory={categorySlug}>
       <SEO
         title={category?.title}
-        description={category?.description || DEFAULT_DESCRIPTION}
+        description={category?.description || t('blog.default_description')}
         url={`${baseUrl}/${categorySlug}`}
         image={
           category?.image

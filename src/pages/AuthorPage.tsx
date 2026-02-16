@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom'
+import { useTranslation } from '@dcl/hooks'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { PostList } from '../components/Blog/PostList'
 import { PageLayout } from '../components/PageLayout'
@@ -9,9 +10,8 @@ import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
 import type { BlogAuthor } from '../shared/types/blog.domain'
 import { AuthorHeaderBox, AuthorImage, CenteredBox } from './AuthorPage.styled'
 
-const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
-
 const AuthorPostList = ({ author }: { author: BlogAuthor }) => {
+  const { t } = useTranslation()
   const { posts, isLoadingInitial, error } = useInfiniteBlogPosts({
     author: author.id
   })
@@ -19,7 +19,7 @@ const AuthorPostList = ({ author }: { author: BlogAuthor }) => {
   if (error) {
     return (
       <CenteredBox>
-        <Typography color="error">Failed to load posts. Please try again later.</Typography>
+        <Typography color="error">{t('error.load_posts')}</Typography>
       </CenteredBox>
     )
   }
@@ -41,6 +41,7 @@ const AuthorPostList = ({ author }: { author: BlogAuthor }) => {
 }
 
 export const AuthorPage = () => {
+  const { t } = useTranslation()
   const { authorSlug } = useParams<{ authorSlug: string }>()
 
   const {
@@ -57,7 +58,7 @@ export const AuthorPage = () => {
     return (
       <PageLayout showBlogNavigation={true}>
         <CenteredBox>
-          <Typography color="error">Failed to load author. Please try again later.</Typography>
+          <Typography color="error">{t('error.load_author')}</Typography>
         </CenteredBox>
       </PageLayout>
     )
@@ -66,8 +67,8 @@ export const AuthorPage = () => {
   return (
     <PageLayout showBlogNavigation={true}>
       <SEO
-        title={author?.title ? `Posts by ${author.title}` : undefined}
-        description={author?.description || DEFAULT_DESCRIPTION}
+        title={author?.title ? t('blog.posts_by', { author: author.title }) : undefined}
+        description={author?.description || t('blog.default_description')}
         url={`${baseUrl}/author/${authorSlug}`}
         type={OGType.PROFILE}
         image={

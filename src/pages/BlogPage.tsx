@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from '@dcl/hooks'
 import { useMobileMediaQuery } from 'decentraland-ui2/dist/components/Media'
 import { Typography } from 'decentraland-ui2'
 import { PostList } from '../components/Blog/PostList'
@@ -8,9 +9,8 @@ import { useInfiniteBlogPosts } from '../features/blog/useInfiniteBlogPosts'
 import type { BlogPost } from '../shared/types/blog.domain'
 import { ErrorContainer } from './BlogPage.styled'
 
-const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
-
 export const BlogPage = () => {
+  const { t } = useTranslation()
   const isMobile = useMobileMediaQuery()
   const { posts, isLoadingInitial, error } = useInfiniteBlogPosts()
 
@@ -22,8 +22,8 @@ export const BlogPage = () => {
   return (
     <PageLayout showBlogNavigation activeCategory="all_articles">
       <SEO
-        title="Blog"
-        description={firstPost?.description || DEFAULT_DESCRIPTION}
+        title={t('blog.title')}
+        description={firstPost?.description || t('blog.default_description')}
         image={
           firstPost?.image
             ? {
@@ -37,7 +37,7 @@ export const BlogPage = () => {
       />
       {error ? (
         <ErrorContainer>
-          <Typography color="error">Failed to load posts. Please try again later.</Typography>
+          <Typography color="error">{t('error.load_posts')}</Typography>
         </ErrorContainer>
       ) : (
         <PostList posts={posts} loading={isLoadingInitial} hasMainPost={!isMobile} />
