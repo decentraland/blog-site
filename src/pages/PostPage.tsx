@@ -39,7 +39,6 @@ import {
   TitleText
 } from './PostPage.styled'
 
-const DEFAULT_DESCRIPTION = 'Stay up to date with Decentraland announcements, updates, community highlights, and more.'
 const RELATED_POSTS_COUNT = 3
 const RELATED_POSTS_FETCH_MULTIPLIER = 10
 const RELATED_POSTS_FETCH_LIMIT = RELATED_POSTS_COUNT * RELATED_POSTS_FETCH_MULTIPLIER
@@ -118,7 +117,7 @@ export const PostPage = () => {
     return (
       <PageLayout showBlogNavigation activeCategory={categorySlug}>
         <CenteredBox>
-          <Typography color="error">Failed to load post. Please try again later.</Typography>
+          <Typography color="error">{t('error.load_post')}</Typography>
         </CenteredBox>
       </PageLayout>
     )
@@ -128,7 +127,7 @@ export const PostPage = () => {
     <PageLayout showBlogNavigation activeCategory={categorySlug}>
       <SEO
         title={displayPost?.title}
-        description={displayPost?.description || DEFAULT_DESCRIPTION}
+        description={displayPost?.description || t('blog.default_description')}
         url={displayPost ? `${baseUrl}/${categorySlug}/${postSlug}` : baseUrl}
         type={OGType.ARTICLE}
         image={
@@ -170,7 +169,7 @@ export const PostPage = () => {
               </AuthorLink>
             </AuthorBox>
             <ShareContainer>
-              <ShareLabel>{t('share')}</ShareLabel>
+              <ShareLabel>{t('blog.share')}</ShareLabel>
               <ShareLink href={locations.twitter(displayPost)} target="_blank" rel="noopener noreferrer">
                 <XIcon fontSize="small" />
               </ShareLink>

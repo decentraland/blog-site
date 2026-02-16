@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from '@dcl/hooks'
 import { useSearchBlogQuery } from '../../../features/search/search.client'
 import type { SearchProps } from './Search.types'
 import {
@@ -21,17 +22,18 @@ import {
   SearchResults
 } from './Search.styled'
 
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'error' in error) {
     const errorValue = error.error
     if (typeof errorValue === 'string') {
       return errorValue
     }
   }
-  return 'Something went wrong. Please try again.'
+  return fallback
 }
 
-const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
+const Search = ({ placeholder, onClose }: SearchProps) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(-1)
@@ -97,10 +99,10 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
           value={searchValue}
           onChange={e => setSearchValue((e.target as HTMLInputElement).value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder || t('search.placeholder')}
         />
         {searchValue && (
-          <SearchCloseButton onClick={handleClose} aria-label="Clear search">
+          <SearchCloseButton onClick={handleClose} aria-label={t('search.clear')}>
             ×
           </SearchCloseButton>
         )}
@@ -110,23 +112,23 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
         <SearchResults>
           {isLoading && (
             <NoResults>
-              <span>Searching...</span>
+              <span>{t('search.searching')}</span>
             </NoResults>
           )}
 
           {!isLoading && isError && (
             <NoResults>
               <NoResultsImage>⚠️</NoResultsImage>
-              <strong>Search error</strong>
-              <span>{getErrorMessage(error)}</span>
+              <strong>{t('search.error')}</strong>
+              <span>{getErrorMessage(error, t('error.generic'))}</span>
             </NoResults>
           )}
 
           {!isLoading && !isError && !hasResults && (
             <NoResults>
               <NoResultsImage>🔍</NoResultsImage>
-              <strong>No matches</strong>
-              <span>Try searching for something else</span>
+              <strong>{t('search.no_matches')}</strong>
+              <span>{t('search.try_something_else')}</span>
             </NoResults>
           )}
 
@@ -150,7 +152,7 @@ const Search = ({ placeholder = 'Search...', onClose }: SearchProps) => {
           {!isLoading && !isError && searchResults.length > 4 && (
             <MoreResultsItem $selected={selectedIndex === 4} onMouseEnter={() => setSelectedIndex(4)}>
               <MoreResultsLink to={`/blog/search?q=${encodeURIComponent(searchValue)}`} onClick={handleClose}>
-                See more results
+                {t('search.see_more_results')}
               </MoreResultsLink>
             </MoreResultsItem>
           )}

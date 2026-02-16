@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from '@dcl/hooks'
 import { CircularProgress, Typography } from 'decentraland-ui2'
 import { RichText } from '../components/Blog/RichText'
 import { PageLayout } from '../components/PageLayout'
@@ -26,6 +27,7 @@ const CONTENTFUL_PREVIEW_URL = 'https://preview.contentful.com'
 const CONTENTFUL_SPACE_ID = 'ea2ybdmmn1kv'
 
 export const PreviewPage = () => {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
 
   const previewOptions = useMemo(
@@ -51,7 +53,7 @@ export const PreviewPage = () => {
     return (
       <PageLayout showBlogNavigation={true}>
         <CenteredBox>
-          <Typography color="error">Missing preview parameters. Required: contentful_id, contentful_env, token</Typography>
+          <Typography color="error">{t('preview.missing_params')}</Typography>
         </CenteredBox>
       </PageLayout>
     )
@@ -71,7 +73,7 @@ export const PreviewPage = () => {
     return (
       <PageLayout showBlogNavigation={true}>
         <CenteredBox>
-          <Typography color="error">Failed to load preview. Please check your preview URL and try again.</Typography>
+          <Typography color="error">{t('error.load_preview')}</Typography>
         </CenteredBox>
       </PageLayout>
     )
@@ -80,8 +82,8 @@ export const PreviewPage = () => {
   return (
     <PageLayout showBlogNavigation={true}>
       <PreviewBanner>
-        <Typography variant="h6">Preview Mode</Typography>
-        <Typography variant="body2">You are viewing an unpublished post from Contentful</Typography>
+        <Typography variant="h6">{t('preview.mode')}</Typography>
+        <Typography variant="body2">{t('preview.description')}</Typography>
       </PreviewBanner>
 
       <ContentContainer>

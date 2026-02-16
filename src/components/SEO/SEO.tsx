@@ -1,20 +1,26 @@
 import { Helmet } from 'react-helmet'
+import { useTranslation } from '@dcl/hooks'
 import { getEnv } from '../../config'
 import { OGType } from './SEO.types'
 import type { OGImage, SEOProps } from './SEO.types'
 
-const DEFAULT_IMAGE: OGImage = {
-  url: 'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png',
-  width: 1200,
-  height: 630,
-  alt: 'Decentraland - A virtual world owned by its users',
-  type: 'image/jpeg'
-}
+const DEFAULT_IMAGE_URL =
+  'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png'
 
 const SITE_NAME = 'Decentraland'
 const DEFAULT_LOCALE = 'en_US'
 
 const SEO = (props: SEOProps) => {
+  const { t } = useTranslation()
+
+  const DEFAULT_IMAGE: OGImage = {
+    url: DEFAULT_IMAGE_URL,
+    width: 1200,
+    height: 630,
+    alt: t('seo.default_image_alt'),
+    type: 'image/jpeg'
+  }
+
   const {
     title,
     description,

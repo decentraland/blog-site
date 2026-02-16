@@ -1,4 +1,43 @@
 {
-  "related_post": "Related Articles",
-  "share": "Share"
+  "blog": {
+    "title": "Blog",
+    "default_description": "Stay up to date with Decentraland announcements, updates, community highlights, and more.",
+    "all_articles": "All articles",
+    "load_more": "Load More",
+    "nothing_to_show": "Nothing to show",
+    "related_post": "Related Articles",
+    "share": "Share",
+    "posts_by": "Posts by {author}"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "clear": "Clear search",
+    "searching": "Searching...",
+    "error": "Search error",
+    "no_matches": "No matches",
+    "try_something_else": "Try searching for something else",
+    "see_more_results": "See more results",
+    "results_for": "Search results for",
+    "no_results_for": "No results found for",
+    "title": "Search",
+    "title_with_query": "Search: {query}",
+    "description_with_query": "Search results for \"{query}\" in Decentraland Blog",
+    "description": "Search the Decentraland Blog"
+  },
+  "error": {
+    "generic": "Something went wrong. Please try again.",
+    "load_post": "Failed to load post. Please try again later.",
+    "load_posts": "Failed to load posts. Please try again later.",
+    "load_category": "Failed to load category. Please try again later.",
+    "load_author": "Failed to load author. Please try again later.",
+    "load_preview": "Failed to load preview. Please check your preview URL and try again."
+  },
+  "preview": {
+    "mode": "Preview Mode",
+    "description": "You are viewing an unpublished post from Contentful",
+    "missing_params": "Missing preview parameters. Required: contentful_id, contentful_env, token"
+  },
+  "seo": {
+    "default_image_alt": "Decentraland - A virtual world owned by its users"
+  }
 }

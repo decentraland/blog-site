@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from '@dcl/hooks'
 import { Button, Typography } from 'decentraland-ui2'
 import { SearchResultCard } from '../components/Blog/SearchResultCard'
 import { PageLayout } from '../components/PageLayout'
@@ -12,6 +13,7 @@ import { CenteredBox, HeaderBox, LoadMoreContainer, ResultsWrapper, SearchSubtit
 const HITS_PER_PAGE = 10
 
 export const SearchPage = () => {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const [page, setPage] = useState(0)
   const [accumulatedResults, setAccumulatedResults] = useState<SearchResult[]>([])
@@ -54,20 +56,20 @@ export const SearchPage = () => {
   const showLoading = isLoading && accumulatedResults.length === 0
   const hasMore = data?.hasMore ?? false
 
-  const searchDescription = query ? `Search results for "${query}" in Decentraland Blog` : 'Search the Decentraland Blog'
+  const searchDescription = query ? t('search.description_with_query', { query }) : t('search.description')
   const baseUrl = getEnv('BLOG_BASE_URL') || ''
 
   return (
     <PageLayout showBlogNavigation={true}>
       <SEO
-        title={query ? `Search: ${query}` : 'Search'}
+        title={query ? t('search.title_with_query', { query }) : t('search.title')}
         description={searchDescription}
         url={query ? `${baseUrl}/search?q=${encodeURIComponent(query)}` : `${baseUrl}/search`}
       />
       {query.length >= 3 && (
         <HeaderBox>
           <SearchSubtitle>
-            Search results for <span>&ldquo;{query}&rdquo;</span>
+            {t('search.results_for')} <span>&ldquo;{query}&rdquo;</span>
           </SearchSubtitle>
         </HeaderBox>
       )}
@@ -99,7 +101,7 @@ export const SearchPage = () => {
       {hasMore && showResults && !isFetching && (
         <LoadMoreContainer>
           <Button variant="contained" onClick={handleLoadMore}>
-            Load More
+            {t('blog.load_more')}
           </Button>
         </LoadMoreContainer>
       )}
@@ -107,9 +109,11 @@ export const SearchPage = () => {
       {showEmpty && (
         <CenteredBox>
           <Typography variant="h5" gutterBottom>
-            Nothing to show
+            {t('blog.nothing_to_show')}
           </Typography>
-          <Typography color="textSecondary">No results found for &ldquo;{query}&rdquo;</Typography>
+          <Typography color="textSecondary">
+            {t('search.no_results_for')} &ldquo;{query}&rdquo;
+          </Typography>
         </CenteredBox>
       )}
     </PageLayout>
