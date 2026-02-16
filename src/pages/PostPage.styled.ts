@@ -71,7 +71,12 @@ const PostImage = styled('img')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper
 }))
 
-const AuthorBox = styled(Box)(({ theme }) => ({
+const AuthorBox = styled(Box)(() => ({}))
+
+const AuthorRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
   marginBottom: theme.spacing(5)
 }))
 
@@ -103,11 +108,38 @@ const AuthorName = styled(Typography)(({ theme }) => ({
 
 const BodyContainer = styled(Box)(() => ({}))
 
+const ShareContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1.5)
+}))
+
+const ShareLabel = styled(Typography)(({ theme }) => ({
+  ...theme.typography.caption,
+  color: theme.palette.text.secondary,
+  textTransform: 'uppercase'
+}))
+
+const ShareLink = styled('a')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  color: theme.palette.text.secondary,
+  textDecoration: 'none',
+  '&:hover': {
+    color: theme.palette.text.primary
+  },
+  '&:focus-visible': {
+    outline: `2px solid ${theme.palette.primary.main}`,
+    outlineOffset: 2
+  }
+}))
+
 export {
   AuthorAvatar,
   AuthorBox,
   AuthorLink,
   AuthorName,
+  AuthorRow,
   BodyContainer,
   CategoryMetaLink,
   CenteredBox,
@@ -116,6 +148,9 @@ export {
   MetaSeparator,
   MetaText,
   PostImage,
+  ShareContainer,
+  ShareLabel,
+  ShareLink,
   SubtitleText,
   TitleBox,
   TitleText
