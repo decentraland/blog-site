@@ -58,7 +58,7 @@ export const CategoryPage = () => {
     <PageLayout
       showBlogNavigation={true}
       activeCategory={categorySlug}
-      fullWidthContent={
+      banner={
         category ? <CategoryHero category={category.title} description={category.description} image={category.image.url} /> : undefined
       }
     >
