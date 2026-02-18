@@ -1,7 +1,7 @@
-import { Box, Typography, styled } from 'decentraland-ui2'
+import { Box, Typography, dclColors, styled } from 'decentraland-ui2'
 
 const RelatedSection = styled('section')(({ theme }) => ({
-  backgroundColor: theme.palette.background.default,
+  backgroundColor: dclColors.neutral.softBlack2,
   paddingBottom: theme.spacing(13),
   paddingTop: theme.spacing(12),
   width: '100%'
@@ -13,7 +13,9 @@ const RelatedContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(3),
   paddingLeft: theme.spacing(2),
   paddingRight: theme.spacing(2),
-  width: '100%'
+  width: '100%',
+  maxWidth: theme.spacing(136.875),
+  margin: '0 auto'
 }))
 
 const RelatedTitle = styled(Typography)(({ theme }) => ({
@@ -23,10 +25,12 @@ const RelatedTitle = styled(Typography)(({ theme }) => ({
 
 const RelatedWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
-  flexWrap: 'wrap',
+  flexWrap: 'nowrap',
   justifyContent: 'flex-start',
+  gap: theme.spacing(4),
   [theme.breakpoints.down('xs')]: {
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexWrap: 'wrap'
   }
 }))
 

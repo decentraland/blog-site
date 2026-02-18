@@ -5,4 +5,5 @@ export interface PageLayoutProps {
   activeCategory?: string
   banner?: ReactNode
   showBlogNavigation?: boolean
+  relatedPosts?: ReactNode
 }

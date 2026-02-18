@@ -3,7 +3,8 @@ import type { Address } from 'viem'
 import { useTokenBalance, useWallet } from '@dcl/core-web3'
 import { ChainId, Network } from '@dcl/schemas'
 import { Env } from '@dcl/ui-env'
-import { FooterLanding, ManaBalancesProps, Navbar, NavbarPages, type NavbarProps } from 'decentraland-ui2'
+import { Footer, FooterLanding, ManaBalancesProps, Navbar, NavbarPages, SupportedLanguage } from 'decentraland-ui2'
+import type { NavbarProps } from 'decentraland-ui2'
 import { config, getEnv } from '../../config'
 import { usePageNotifications } from '../../features/notifications/usePageNotifications'
 import { useGetProfileQuery } from '../../features/profile/profile.client'
@@ -24,7 +25,8 @@ const parseTokenBalance = (balance: string | null) => {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
-export function PageLayout({ children, activeCategory, banner, showBlogNavigation = false }: PageLayoutProps) {
+export function PageLayout(props: PageLayoutProps) {
+  const { children, activeCategory, banner, showBlogNavigation = false, relatedPosts } = props
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
 
   // Auth identity for signed requests (notifications, etc.)
@@ -111,7 +113,9 @@ export function PageLayout({ children, activeCategory, banner, showBlogNavigatio
       {showBlogNavigation && <BlogNavigation active={activeCategory} />}
       {banner}
       <ContentWrapper>{children}</ContentWrapper>
+      {relatedPosts}
       <FooterLanding />
+      <Footer languages={[{ code: SupportedLanguage.EN, name: 'English', flag: '🇺🇸' }]} hideSocialNetworks />
     </PageContainer>
   )
 }

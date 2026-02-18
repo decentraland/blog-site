@@ -124,7 +124,11 @@ export const PostPage = () => {
   }
 
   return (
-    <PageLayout showBlogNavigation activeCategory={categorySlug}>
+    <PageLayout
+      showBlogNavigation
+      activeCategory={categorySlug}
+      relatedPosts={<RelatedPost posts={relatedPosts} loading={isRelatedPostsLoading} maxItems={RELATED_POSTS_COUNT} />}
+    >
       <SEO
         title={displayPost?.title}
         description={displayPost?.description || t('blog.default_description')}
@@ -184,7 +188,6 @@ export const PostPage = () => {
           <RichText document={displayPost.body} assets={displayPost.bodyAssets} />
         </BodyContainer>
       </ContentContainer>
-      <RelatedPost posts={relatedPosts} loading={isRelatedPostsLoading} maxItems={RELATED_POSTS_COUNT} />
     </PageLayout>
   )
 }
