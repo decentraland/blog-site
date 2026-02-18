@@ -20,7 +20,9 @@ const HeroContainer = styled(Box)<{ imageUrl: string }>(({ theme, imageUrl }) =>
 const HeroContent = styled(Box)(({ theme }) => ({
   textAlign: 'left',
   color: theme.palette.common.white,
-  maxWidth: '800px',
+  maxWidth: theme.spacing(133),
+  width: '100%',
+  margin: '0 auto',
   padding: theme.spacing(3),
   '& p': {
     fontSize: '18px',
