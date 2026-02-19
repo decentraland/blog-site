@@ -125,4 +125,4 @@ Tests are written as `*.test.ts` or `*.test.tsx` files, typically close to the c
 - `src/config`: environment mapping and helpers.
 - `src/services`: API client setup.
 - `api/seo.ts`: Vercel SEO serverless function.
-- `public`: static assets, service worker, redirects, manifest.
+- `public`: static assets, redirects, manifest.
