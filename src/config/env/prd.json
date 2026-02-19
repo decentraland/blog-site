@@ -10,5 +10,6 @@
   "MANA_TOKEN_ADDRESS_MATIC": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
   "NOTIFICATIONS_API_URL": "https://notifications.decentraland.org",
   "PEER_URL": "https://peer.decentraland.org",
+  "SEGMENT_API_KEY": "f0S2L1sWumT8BPjBmIBDTN5gIWjhrRHG",
   "WALLET_CONNECT_PROJECT_ID": "61570c542c2d66c659492e5b24a41522"
 }

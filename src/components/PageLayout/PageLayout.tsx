@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import type { Address } from 'viem'
 import { useTokenBalance, useWallet } from '@dcl/core-web3'
+import { usePageTracking } from '@dcl/hooks'
 import { ChainId, Network } from '@dcl/schemas'
 import { Env } from '@dcl/ui-env'
 import { Footer, FooterLanding, ManaBalancesProps, Navbar, NavbarPages, SupportedLanguage } from 'decentraland-ui2'
@@ -27,7 +29,9 @@ const parseTokenBalance = (balance: string | null) => {
 
 export function PageLayout(props: PageLayoutProps) {
   const { children, activeCategory, banner, showBlogNavigation = false, relatedPosts } = props
+  const location = useLocation()
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
+  usePageTracking(location.pathname)
 
   // Auth identity for signed requests (notifications, etc.)
   const { identity } = useAuthIdentity()

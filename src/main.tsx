@@ -5,9 +5,10 @@ import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import { PersistGate } from 'redux-persist/integration/react'
 import { Web3CoreProvider, Web3SyncProvider } from '@dcl/core-web3'
-import { TranslationProvider } from '@dcl/hooks'
+import { AnalyticsProvider, TranslationProvider } from '@dcl/hooks'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
 import { persistor, store } from './app/store'
+import { getEnv } from './config'
 import { blogClient } from './features/blog/blog.client'
 import { initializeHelpers } from './features/blog/blog.helpers'
 import { web3Config } from './features/web3/web3.config'
@@ -25,6 +26,8 @@ initializeHelpers(store)
 store.dispatch(blogClient.endpoints.getBlogCategories.initiate())
 store.dispatch(blogClient.endpoints.getBlogAuthors.initiate())
 
+const segmentWriteKey = getEnv('SEGMENT_API_KEY') || ''
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
@@ -32,9 +35,11 @@ createRoot(document.getElementById('root')!).render(
         <Web3CoreProvider config={web3Config}>
           <Web3SyncProvider>
             <DclThemeProvider theme={darkTheme}>
-              <TranslationProvider locale="en" translations={{ en }} fallbackLocale="en">
-                <RouterProvider router={router} />
-              </TranslationProvider>
+              <AnalyticsProvider writeKey={segmentWriteKey}>
+                <TranslationProvider locale="en" translations={{ en }} fallbackLocale="en">
+                  <RouterProvider router={router} />
+                </TranslationProvider>
+              </AnalyticsProvider>
             </DclThemeProvider>
           </Web3SyncProvider>
         </Web3CoreProvider>
