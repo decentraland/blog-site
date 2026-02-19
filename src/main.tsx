@@ -14,12 +14,6 @@ import { web3Config } from './features/web3/web3.config'
 import en from './intl/en.json'
 import { router } from './routes'
 
-declare global {
-  interface Window {
-    clearSWCache?: () => void
-  }
-}
-
 // Setup RTK Query listeners for refetchOnFocus/refetchOnReconnect behaviors
 setupListeners(store.dispatch)
 
@@ -30,26 +24,6 @@ initializeHelpers(store)
 // This improves initial load time by having data ready when needed
 store.dispatch(blogClient.endpoints.getBlogCategories.initiate())
 store.dispatch(blogClient.endpoints.getBlogAuthors.initiate())
-
-// Register Service Worker for persistent HTTP cache
-// Note: Service Worker only works in production or when served over HTTPS
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .then(registration => {
-        // Optional: Add a function to clear cache from console
-        if (import.meta.env.DEV) {
-          window.clearSWCache = () => {
-            registration.active?.postMessage({ type: 'CLEAR_CACHE' })
-          }
-        }
-      })
-      .catch(error => {
-        console.error('[SW] Service Worker registration failed:', error)
-      })
-  })
-}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
