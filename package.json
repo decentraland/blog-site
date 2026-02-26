@@ -30,7 +30,7 @@
     "@magic-ext/oauth2": "15.0.0",
     "@reduxjs/toolkit": "2.9.2",
     "@tanstack/react-query": "5.90.16",
-    "algoliasearch": "5.41.0",
+    "algoliasearch": "5.47.0",
     "contentful": "11.8.7",
     "date-fns": "4.1.0",
     "decentraland-crypto-fetch": "^2.0.1",
