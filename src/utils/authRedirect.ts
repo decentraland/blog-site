@@ -27,7 +27,13 @@ function buildAuthRedirectUrl(path: string, queryParams?: Record<string, string>
   }
 
   // Remove the origin, keep only pathname + search
-  const pathWithQuery = url.pathname + url.search
+  let pathWithQuery = url.pathname + url.search
+
+  // Strip the basename prefix if already present to avoid duplication (e.g. /blog/blog)
+  if (basename && pathWithQuery.startsWith(basename)) {
+    pathWithQuery = pathWithQuery.slice(basename.length) || '/'
+  }
+
   return `${basename}${pathWithQuery}`
 }
 
