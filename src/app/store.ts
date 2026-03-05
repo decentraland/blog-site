@@ -6,15 +6,23 @@ import { blogReducer } from '../features/blog/blog.slice'
 import { profileClient } from '../features/profile/profile.client'
 import { algoliaClient, cmsClient } from '../services/client'
 
-// Persist config for blog slice only
+// Persist config for blog slice (normalized posts store)
 const blogPersistConfig = {
   key: 'blog',
   storage,
-  // Posts cache persists between page reloads
   whitelist: ['ids', 'entities']
 }
 
-const rootReducer = combineReducers({
+// Root-level persist config — persists blog slice and RTK Query cache.
+// extractRehydrationInfo on cmsClient reads from root REHYDRATE action
+// to restore cached API responses on page load (stale-while-revalidate).
+const rootPersistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['blog', cmsClient.reducerPath]
+}
+
+const appReducer = combineReducers({
   blog: persistReducer(blogPersistConfig, blogReducer),
   network: networkReducer,
   transactions: transactionsReducer,
@@ -23,6 +31,8 @@ const rootReducer = combineReducers({
   [algoliaClient.reducerPath]: algoliaClient.reducer,
   [profileClient.reducerPath]: profileClient.reducer
 })
+
+const rootReducer = persistReducer(rootPersistConfig, appReducer)
 
 const store = configureStore({
   reducer: rootReducer,

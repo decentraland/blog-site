@@ -2,7 +2,7 @@ import { BLOCKS } from '@contentful/rich-text-types'
 import { store } from '../../app/store'
 import { cmsClient } from '../../services/client'
 import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
-import { getEntrySlug, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
+import { getEntrySlug, prefetchReferences, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
 import { postsUpserted } from './blog.slice'
 import type {
@@ -155,6 +155,9 @@ const blogClient = cmsClient.injectEndpoints({
         try {
           const totalAvailable = listResponse.total
 
+          // Prefetch all referenced assets and entries in parallel to avoid waterfall
+          await prefetchReferences(listResponse.items)
+
           // Map each entry, using cached posts from normalized store when available
           const batchPosts = await Promise.all(
             listResponse.items.map(async item => {
@@ -208,7 +211,7 @@ const blogClient = cmsClient.injectEndpoints({
           }
         }
       },
-      keepUnusedDataFor: 60,
+      keepUnusedDataFor: 300, // 5 minutes — matches the global cmsClient setting
       providesTags: result =>
         result
           ? [
@@ -322,6 +325,9 @@ const blogClient = cmsClient.injectEndpoints({
       }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { postSlug }) => {
         try {
+          // Prefetch all referenced assets and entries in parallel
+          await prefetchReferences(listResponse.items)
+
           // Find the post with matching slug in the response
           const postEntry = listResponse.items.find(item => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
