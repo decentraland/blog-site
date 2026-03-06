@@ -13,13 +13,13 @@ const blogPersistConfig = {
   whitelist: ['ids', 'entities']
 }
 
-// Root-level persist config — persists blog slice and RTK Query cache.
+// Root-level persist config for RTK Query cache.
 // extractRehydrationInfo on cmsClient reads from root REHYDRATE action
 // to restore cached API responses on page load (stale-while-revalidate).
 const rootPersistConfig = {
   key: 'root',
   storage,
-  whitelist: ['blog', cmsClient.reducerPath]
+  whitelist: [cmsClient.reducerPath]
 }
 
 const appReducer = combineReducers({

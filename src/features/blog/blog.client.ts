@@ -155,8 +155,15 @@ const blogClient = cmsClient.injectEndpoints({
         try {
           const totalAvailable = listResponse.total
 
-          // Prefetch all referenced assets and entries in parallel to avoid waterfall
-          await prefetchReferences(listResponse.items)
+          // Only prefetch references for posts that are not already normalized in the store
+          const uncachedItems = listResponse.items.filter(item => {
+            const postId = item.sys?.id
+            return !postId || !getPostFromStore(postId)
+          })
+
+          if (uncachedItems.length > 0) {
+            await prefetchReferences(uncachedItems)
+          }
 
           // Map each entry, using cached posts from normalized store when available
           const batchPosts = await Promise.all(
@@ -325,9 +332,6 @@ const blogClient = cmsClient.injectEndpoints({
       }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { postSlug }) => {
         try {
-          // Prefetch all referenced assets and entries in parallel
-          await prefetchReferences(listResponse.items)
-
           // Find the post with matching slug in the response
           const postEntry = listResponse.items.find(item => {
             const fields = item.fields as { id?: string; slug?: string; title?: string }
@@ -350,6 +354,9 @@ const blogClient = cmsClient.injectEndpoints({
               return cachedPost
             }
           }
+
+          // Prefetch references only for the selected post to avoid over-fetching
+          await prefetchReferences([postEntry])
 
           // Resolve references and map
           const resolvedEntry = await resolveEntryReferences(postEntry)
