@@ -2,7 +2,7 @@ import { BLOCKS } from '@contentful/rich-text-types'
 import { store } from '../../app/store'
 import { cmsClient } from '../../services/client'
 import type { BlogAuthor, BlogCategory, BlogPost, ContentfulAsset, PaginatedBlogPosts } from '../../shared/types/blog.domain'
-import { getEntrySlug, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
+import { getEntrySlug, prefetchReferences, resolveAssetLink, resolveAuthorLink, resolveCategoryLink } from './blog.helpers'
 import { mapBlogAuthor, mapBlogCategory, mapBlogPost, mapContentfulAsset } from './blog.mappers'
 import { postsUpserted } from './blog.slice'
 import type {
@@ -155,6 +155,16 @@ const blogClient = cmsClient.injectEndpoints({
         try {
           const totalAvailable = listResponse.total
 
+          // Only prefetch references for posts that are not already normalized in the store
+          const uncachedItems = listResponse.items.filter(item => {
+            const postId = item.sys?.id
+            return !postId || !getPostFromStore(postId)
+          })
+
+          if (uncachedItems.length > 0) {
+            await prefetchReferences(uncachedItems)
+          }
+
           // Map each entry, using cached posts from normalized store when available
           const batchPosts = await Promise.all(
             listResponse.items.map(async item => {
@@ -208,7 +218,7 @@ const blogClient = cmsClient.injectEndpoints({
           }
         }
       },
-      keepUnusedDataFor: 60,
+      keepUnusedDataFor: 300, // 5 minutes — matches the global cmsClient setting
       providesTags: result =>
         result
           ? [
@@ -344,6 +354,9 @@ const blogClient = cmsClient.injectEndpoints({
               return cachedPost
             }
           }
+
+          // Prefetch references only for the selected post to avoid over-fetching
+          await prefetchReferences([postEntry])
 
           // Resolve references and map
           const resolvedEntry = await resolveEntryReferences(postEntry)

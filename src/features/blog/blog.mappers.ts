@@ -24,6 +24,25 @@ interface ContentfulAssetEntry {
   }
 }
 
+/**
+ * Appends Contentful Images API params to optimize delivery.
+ * Converts to WebP format and sets quality to 80 for a good balance of size vs clarity.
+ */
+function optimizeImageUrl(rawUrl: string, mimeType: string): string {
+  // Only optimize images served from Contentful
+  if (!rawUrl.includes('cms-images.') && !rawUrl.includes('images.ctfassets.net')) {
+    return rawUrl
+  }
+
+  // Skip SVGs — they don't benefit from raster optimization
+  if (mimeType.includes('svg')) {
+    return rawUrl
+  }
+
+  const separator = rawUrl.includes('?') ? '&' : '?'
+  return `${rawUrl}${separator}fm=webp&q=80`
+}
+
 function mapContentfulAsset(asset: ContentfulAssetEntry | null | undefined): ContentfulAsset | null {
   if (!asset || !asset.sys || !asset.fields || !asset.fields.file) {
     return null
@@ -34,12 +53,15 @@ function mapContentfulAsset(asset: ContentfulAssetEntry | null | undefined): Con
     return null
   }
 
+  const fullUrl = url.startsWith('//') ? `https:${url}` : url
+  const mimeType = asset.fields.file.contentType || 'image/jpeg'
+
   return {
     id: asset.sys.id,
-    url: url.startsWith('//') ? `https:${url}` : url,
+    url: optimizeImageUrl(fullUrl, mimeType),
     width: asset.fields.file.details?.image?.width || 0,
     height: asset.fields.file.details?.image?.height || 0,
-    mimeType: asset.fields.file.contentType || 'image/jpeg'
+    mimeType
   }
 }
 

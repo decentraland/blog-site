@@ -327,6 +327,132 @@ const resolveAuthorLink = async (value: unknown): Promise<unknown> => {
 }
 
 // ============================================================================
+// BATCH PREFETCH - Fire all reference fetches in parallel to avoid waterfalls
+// ============================================================================
+
+/**
+ * Extracts all linked Asset and Entry IDs from a list of CMS entries
+ * and prefetches them in parallel, populating the caches before per-post resolution.
+ * This turns a cascading waterfall (post → entry → asset) into a single parallel wave.
+ */
+const prefetchReferences = async (items: CMSEntry[]): Promise<void> => {
+  const assetIds = new Set<string>()
+  const entryIds = new Set<string>()
+
+  // Collect all linked IDs from the response
+  for (const item of items) {
+    if (!item.fields) continue
+
+    // Direct asset links (post image)
+    const image = item.fields.image as CMSReference | undefined
+    if (image?.sys?.type === 'Link' && image.sys.linkType === 'Asset') {
+      assetIds.add(image.sys.id)
+    }
+
+    // Entry links (category, author) — these will also have image assets
+    const category = item.fields.category as CMSReference | undefined
+    if (category?.sys?.type === 'Link' && category.sys.linkType === 'Entry') {
+      entryIds.add(category.sys.id)
+    }
+
+    const author = item.fields.author as CMSReference | undefined
+    if (author?.sys?.type === 'Link' && author.sys.linkType === 'Entry') {
+      entryIds.add(author.sys.id)
+    }
+  }
+
+  // Filter out already-cached IDs
+  const uncachedAssetIds = [...assetIds].filter(id => !assetsCache.has(id) && !assetsCachePromises.has(id))
+  const uncachedEntryIds = [...entryIds].filter(
+    id => !entriesCache.has(id) && !entriesCachePromises.has(id) && !resolvedCategoriesCache.has(id) && !resolvedAuthorsCache.has(id)
+  )
+
+  // Fire all fetches in parallel (entries first, then their image assets)
+  const entryPromises = uncachedEntryIds.map(id => {
+    const promise = fetchFromCMS(`/entries/${id}`)
+      .then(fetched => {
+        const cmsEntry = fetched as CMSEntry
+        entriesCache.set(id, cmsEntry)
+        entriesCachePromises.delete(id)
+
+        // Collect any nested image asset IDs from the fetched entry
+        const entryImage = cmsEntry.fields?.image as CMSReference | undefined
+        if (entryImage?.sys?.type === 'Link' && entryImage.sys.linkType === 'Asset') {
+          assetIds.add(entryImage.sys.id)
+        }
+
+        return cmsEntry
+      })
+      .catch(() => {
+        entriesCachePromises.delete(id)
+        return null
+      })
+
+    entriesCachePromises.set(id, promise as Promise<CMSEntry>)
+    return promise
+  })
+
+  const assetPromises = uncachedAssetIds.map(id => {
+    const promise = fetchFromCMS(`/assets/${id}`)
+      .then(asset => {
+        const cmsAsset = asset as CMSEntry
+        assetsCache.set(id, cmsAsset)
+        assetsCachePromises.delete(id)
+        return cmsAsset
+      })
+      .catch(() => {
+        assetsCachePromises.delete(id)
+        return null
+      })
+
+    assetsCachePromises.set(id, promise as Promise<CMSEntry>)
+    return promise
+  })
+
+  // Wait for entries first (they may reveal more asset IDs)
+  await Promise.all(entryPromises)
+
+  // Now fetch any newly discovered asset IDs from entries (e.g. category/author images)
+  const newAssetIds = [...assetIds].filter(id => !assetsCache.has(id) && !assetsCachePromises.has(id))
+  const secondWavePromises = newAssetIds.map(id => {
+    const promise = fetchFromCMS(`/assets/${id}`)
+      .then(asset => {
+        const cmsAsset = asset as CMSEntry
+        assetsCache.set(id, cmsAsset)
+        assetsCachePromises.delete(id)
+        return cmsAsset
+      })
+      .catch(() => {
+        assetsCachePromises.delete(id)
+        return null
+      })
+
+    assetsCachePromises.set(id, promise as Promise<CMSEntry>)
+    return promise
+  })
+
+  // Wait for all assets (both waves)
+  await Promise.all([...assetPromises, ...secondWavePromises])
+
+  // Now resolve image references inside cached entries so that downstream code
+  // (fetchAndCacheEntry, resolveCategoryLink, resolveAuthorLink) finds fully
+  // resolved entries when it hits the cache.
+  for (const entryId of uncachedEntryIds) {
+    const entry = entriesCache.get(entryId)
+    if (!entry?.fields?.image) continue
+
+    const imageLink = entry.fields.image as CMSReference | undefined
+    if (imageLink?.sys?.type === 'Link' && imageLink.sys.linkType === 'Asset') {
+      const resolvedAsset = assetsCache.get(imageLink.sys.id)
+      if (resolvedAsset) {
+        entry.fields.image = resolvedAsset
+        entriesCache.set(entryId, entry)
+      }
+    }
+  }
+}
+
+// ============================================================================
 // URL RESOLVERS - Simple functions that return just URLs/slugs from references
 // ============================================================================
 
@@ -336,7 +462,18 @@ const resolveAssetUrl = async (assetId: string): Promise<string> => {
   const resolved = await resolveAssetLink({ sys: { type: 'Link', linkType: 'Asset', id: assetId } })
   const asset = resolved as CMSEntry
   const url = (asset?.fields?.file as { url?: string })?.url || ''
-  return url.startsWith('//') ? `https:${url}` : url
+  const fullUrl = url.startsWith('//') ? `https:${url}` : url
+
+  // Optimize Contentful image URLs with WebP and quality params
+  if (fullUrl && (fullUrl.includes('cms-images.') || fullUrl.includes('images.ctfassets.net'))) {
+    const contentType = (asset?.fields?.file as { contentType?: string })?.contentType || ''
+    if (!contentType.includes('svg')) {
+      const separator = fullUrl.includes('?') ? '&' : '?'
+      return `${fullUrl}${separator}fm=webp&q=80`
+    }
+  }
+
+  return fullUrl
 }
 
 const resolveEntrySlug = async (entryId: string): Promise<string> => {
@@ -373,6 +510,7 @@ export {
   fetchFromCMS,
   getEntrySlug,
   initializeHelpers,
+  prefetchReferences,
   resolveAssetLink,
   resolveAssetUrl,
   resolveAuthorLink,
