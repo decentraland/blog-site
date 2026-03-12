@@ -51,8 +51,8 @@ const CRAWLER_USER_AGENTS = [
 const CMS_BASE_URL = 'https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master'
 
 const DEFAULTS = {
-  title: 'Decentraland Blog',
-  description: 'Stay up to date with Decentraland announcements, updates, community highlights, and more.',
+  title: 'Decentraland Blog | Updates, Stories, and Community Moments',
+  description: 'Updates from across Decentraland. Announcements, events, community moments, and everything in between.',
   image: 'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png',
   siteName: 'Decentraland'
 } as const
@@ -132,15 +132,15 @@ const resolveImage = async (fields: Record<string, unknown>): Promise<string> =>
 
 const findEntryBySlug = async (endpoint: string, slug: string): Promise<CMSEntry | null> => {
   const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}${endpoint}`)
-  return data?.items.find((item) => getSlug(item.fields as Record<string, unknown>, item.sys.id) === slug) ?? null
+  return data?.items.find(item => getSlug(item.fields as Record<string, unknown>, item.sys.id) === slug) ?? null
 }
 
 const fetchBlogPost = async (postSlug: string): Promise<SEOData | null> => {
   const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}/blog/posts?limit=200`)
-  const entry = data?.items.find((item) => getSlug(item.fields as Record<string, unknown>, item.sys.id) === postSlug)
+  const entry = data?.items.find(item => getSlug(item.fields as Record<string, unknown>, item.sys.id) === postSlug)
   if (!entry?.fields) return null
 
-  const fields = entry.fields as Record<string, unknown>
+  const fields = entry.fields
   const [imageUrl, author, category] = await Promise.all([
     resolveImage(fields),
     fields.author ? resolveEntryField(fields.author as CMSLink, 'title') : undefined,
@@ -161,7 +161,7 @@ const fetchCategory = async (categorySlug: string): Promise<SEOData | null> => {
   const entry = await findEntryBySlug('/blog/categories', categorySlug)
   if (!entry?.fields) return null
 
-  const fields = entry.fields as Record<string, unknown>
+  const fields = entry.fields
   return {
     title: (fields.title as string) || DEFAULTS.title,
     description: (fields.description as string) || DEFAULTS.description,
@@ -173,7 +173,7 @@ const fetchAuthor = async (authorSlug: string): Promise<SEOData | null> => {
   const entry = await findEntryBySlug('/blog/authors', authorSlug)
   if (!entry?.fields) return null
 
-  const fields = entry.fields as Record<string, unknown>
+  const fields = entry.fields
   const title = fields.title as string
   return {
     title: title ? `Posts by ${title}` : DEFAULTS.title,
@@ -186,7 +186,7 @@ const fetchDefaultSEO = async (): Promise<SEOData | null> => {
   const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}/blog/posts?limit=1`)
   if (!data?.items[0]?.fields) return null
 
-  const fields = data.items[0].fields as Record<string, unknown>
+  const fields = data.items[0].fields
   return {
     title: DEFAULTS.title,
     description: (fields.description as string) || DEFAULTS.description,
@@ -199,10 +199,10 @@ const fetchDefaultSEO = async (): Promise<SEOData | null> => {
 // =============================================================================
 
 const ROUTE_PATTERNS: Array<{ pattern: RegExp; handler: (match: RegExpMatchArray) => RouteInfo }> = [
-  { pattern: /^\/blog\/author\/([^/]+)$/, handler: (m) => ({ type: 'author', authorSlug: m[1] }) },
+  { pattern: /^\/blog\/author\/([^/]+)$/, handler: m => ({ type: 'author', authorSlug: m[1] }) },
   { pattern: /^\/blog\/search$/, handler: () => ({ type: 'search' }) },
-  { pattern: /^\/blog\/([^/]+)\/([^/]+)$/, handler: (m) => ({ type: 'post', categorySlug: m[1], postSlug: m[2] }) },
-  { pattern: /^\/blog\/([^/]+)$/, handler: (m) => ({ type: 'category', categorySlug: m[1] }) },
+  { pattern: /^\/blog\/([^/]+)\/([^/]+)$/, handler: m => ({ type: 'post', categorySlug: m[1], postSlug: m[2] }) },
+  { pattern: /^\/blog\/([^/]+)$/, handler: m => ({ type: 'category', categorySlug: m[1] }) },
   { pattern: /^\/blog\/?$/, handler: () => ({ type: 'blog' }) }
 ]
 
@@ -298,7 +298,7 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
 
 const isCrawler = (userAgent: string): boolean => {
   const ua = userAgent.toLowerCase()
-  return CRAWLER_USER_AGENTS.some((crawler) => ua.includes(crawler))
+  return CRAWLER_USER_AGENTS.some(crawler => ua.includes(crawler))
 }
 
 async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
