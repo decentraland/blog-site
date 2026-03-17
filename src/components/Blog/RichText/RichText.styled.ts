@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { Link } from 'react-router-dom'
 import { styled } from 'decentraland-ui2'
 
 const Paragraph = styled('p')(({ theme }) => ({
@@ -83,6 +84,14 @@ const Hyperlink = styled('a')(({ theme }) => ({
   }
 }))
 
+const InternalLink = styled(Link)(({ theme }) => ({
+  color: theme.palette.primary.main,
+  textDecoration: 'none',
+  '&:hover': {
+    color: theme.palette.primary.dark
+  }
+}))
+
 const LinkedInEmbed = styled('iframe')(({ theme }) => ({
   height: 760,
   width: 560,
@@ -125,6 +134,7 @@ export {
   Heading5,
   Heading6,
   Hyperlink,
+  InternalLink,
   LinkedInEmbed,
   ListItem,
   OrderedList,

@@ -3,13 +3,8 @@ import { useInfiniteScroll } from '@dcl/hooks'
 import type { PostOrPlaceholder } from '../../shared/types/blog.domain'
 import { useGetBlogPostsQuery } from './blog.client'
 
-// Base limits for unfiltered requests
 const POSTS_INITIAL_LOAD = 7
 const POSTS_PER_LOAD = 6
-
-// Multiplier for filtered requests (category/author) to compensate for client-side filtering
-// Since we filter after fetching, we need more posts to find enough matches
-const FILTER_MULTIPLIER = 10
 
 interface UseInfiniteBlogPostsParams {
   category?: string
@@ -38,17 +33,12 @@ function useInfiniteBlogPosts({ category, author }: UseInfiniteBlogPostsParams =
   const [showPlaceholders, setShowPlaceholders] = useState(false)
   const batchIdRef = useRef(0)
 
-  // When filtering by category/author, request more posts to compensate for client-side filtering
-  const hasFilter = Boolean(category || author)
-  const multiplier = hasFilter ? FILTER_MULTIPLIER : 1
-  const initialLoad = POSTS_INITIAL_LOAD * multiplier
-  const perLoad = POSTS_PER_LOAD * multiplier
-
   // Use RTK Query with pagination - cache handles accumulation via merge
+  // Backend handles category/author filtering, so we request real page sizes
   const { data, isLoading, error, isFetching } = useGetBlogPostsQuery({
     category,
     author,
-    limit: currentSkip === 0 ? initialLoad : perLoad,
+    limit: currentSkip === 0 ? POSTS_INITIAL_LOAD : POSTS_PER_LOAD,
     skip: currentSkip
   })
 

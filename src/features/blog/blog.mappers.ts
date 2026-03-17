@@ -65,7 +65,7 @@ function mapBlogCategory(entry: CMSEntry | null | undefined): BlogCategory | nul
     description: (entry.fields.description as string | undefined) || '',
     image,
     isShownInMenu: (entry.fields.isShownInMenu as boolean | undefined) ?? true,
-    url: '' // TODO: add this after adding the blog category page -> locations.category(slug)
+    url: locations.category(slug)
   }
 }
 
@@ -83,7 +83,7 @@ function createDefaultCategory(entryId?: string): BlogCategory {
       mimeType: 'image/png'
     },
     isShownInMenu: false,
-    url: '' // TODO: add this after adding the blog category page -> locations.category('uncategorized')
+    url: locations.category('uncategorized')
   }
 }
 

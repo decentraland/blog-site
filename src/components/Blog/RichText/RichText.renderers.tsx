@@ -1,7 +1,8 @@
 import { TwitterTweetEmbed } from 'react-twitter-embed'
 import type { Block, Inline, Text } from '@contentful/rich-text-types'
+import { getEnv } from '../../../config'
 import type { ContentfulAsset } from '../../../shared/types/blog.domain'
-import { EmbeddedImage, Hyperlink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
+import { EmbeddedImage, Hyperlink, InternalLink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
 
 const renderYouTubeEmbed = (uri: string) => {
   const url = new URL(uri)
@@ -59,11 +60,27 @@ const renderHyperlink = (node: Block | Inline) => {
     return <LinkedInEmbed src={uri} title="Embedded Linkedin Post" />
   }
 
-  const isInternalAnchor = uri.startsWith('#') || (uri.startsWith('https://decentraland.org/blog') && uri.includes('#'))
-  const target = isInternalAnchor ? '_self' : '_blank'
+  // Check if this is an internal blog link (e.g. https://decentraland.org/blog/...)
+  const blogBaseUrl = getEnv('BLOG_BASE_URL') || ''
+  const isInternalBlogLink = uri.startsWith(blogBaseUrl)
+  const isAnchorLink = uri.startsWith('#')
+
+  if (isInternalBlogLink) {
+    // Extract the path starting from /blog/...
+    const internalPath = new URL(uri, window.location.origin).pathname
+    return <InternalLink to={internalPath}>{contentValue}</InternalLink>
+  }
+
+  if (isAnchorLink) {
+    return (
+      <Hyperlink href={uri} target="_self">
+        {contentValue}
+      </Hyperlink>
+    )
+  }
 
   return (
-    <Hyperlink href={uri} target={target} rel="noopener noreferrer">
+    <Hyperlink href={uri} target="_blank" rel="noopener noreferrer">
       {contentValue}
     </Hyperlink>
   )

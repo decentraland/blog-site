@@ -151,7 +151,7 @@ const blogClient = cmsClient.injectEndpoints({
         url: '/blog/posts',
         params: { category, author, limit, skip }
       }),
-      transformResponse: async (listResponse: CMSListResponse, _meta, { category, author, skip = 0 }) => {
+      transformResponse: async (listResponse: CMSListResponse, _meta, { skip = 0 }) => {
         try {
           const totalAvailable = listResponse.total
 
@@ -184,22 +184,15 @@ const blogClient = cmsClient.injectEndpoints({
             store.dispatch(postsUpserted(validPosts))
           }
 
-          let filteredPosts = validPosts
-          if (category) {
-            filteredPosts = filteredPosts.filter((post: BlogPost) => post.category.id === category)
-          }
-          if (author) {
-            filteredPosts = filteredPosts.filter((post: BlogPost) => post.author.id === author)
-          }
-
+          // Backend handles category/author filtering — total reflects the filtered set
           const nextCmsSkip = skip + listResponse.items.length
           const hasMore = listResponse.items.length === 0 ? false : nextCmsSkip < totalAvailable
 
           return {
-            posts: filteredPosts,
+            posts: validPosts,
             total: totalAvailable,
             hasMore,
-            nextCmsSkip // Track the CMS-level skip for proper pagination
+            nextCmsSkip
           }
         } catch (error) {
           throw {
@@ -316,9 +309,9 @@ const blogClient = cmsClient.injectEndpoints({
     }),
 
     getBlogPostBySlug: build.query<BlogPost, GetBlogPostBySlugParams>({
-      query: () => ({
+      query: ({ postSlug }) => ({
         url: '/blog/posts',
-        params: { limit: 100 }
+        params: { slug: postSlug }
       }),
       transformResponse: async (listResponse: CMSListResponse, _meta, { postSlug }) => {
         try {
