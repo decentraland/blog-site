@@ -1,5 +1,6 @@
 import { TwitterTweetEmbed } from 'react-twitter-embed'
 import type { Block, Inline, Text } from '@contentful/rich-text-types'
+import { getEnv } from '../../../config'
 import type { ContentfulAsset } from '../../../shared/types/blog.domain'
 import { EmbeddedImage, Hyperlink, InternalLink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
 
@@ -60,13 +61,13 @@ const renderHyperlink = (node: Block | Inline) => {
   }
 
   // Check if this is an internal blog link (e.g. https://decentraland.org/blog/...)
-  const blogUrlPrefix = 'https://decentraland.org/blog'
-  const isInternalBlogLink = uri.startsWith(blogUrlPrefix)
+  const blogBaseUrl = getEnv('BLOG_BASE_URL') || ''
+  const isInternalBlogLink = uri.startsWith(blogBaseUrl)
   const isAnchorLink = uri.startsWith('#')
 
   if (isInternalBlogLink) {
     // Extract the path starting from /blog/...
-    const internalPath = uri.replace('https://decentraland.org', '')
+    const internalPath = new URL(uri, window.location.origin).pathname
     return <InternalLink to={internalPath}>{contentValue}</InternalLink>
   }
 
