@@ -16,7 +16,7 @@ const CategoryPostList = ({ category }: { category: BlogCategory }) => {
   const { t } = useTranslation()
   const isMobile = useMobileMediaQuery()
   const { posts, isLoadingInitial, error } = useInfiniteBlogPosts({
-    category: category.id
+    category: category.slug
   })
 
   if (error) {
