@@ -8,10 +8,9 @@ import type { CMSEntry, CMSListResponse, CMSQueryParams, CMSReference } from './
 
 /**
  * Extracts slug from CMS entry fields.
- * Priority: fields.id > fields.slug > slugified title > sys.id fallback
  */
 const getEntrySlug = (fields: SlugFields, sysId?: string): string => {
-  return fields.id || fields.slug || fields.title?.toLowerCase().replace(/\s+/g, '-') || sysId || ''
+  return fields.id || sysId || ''
 }
 
 // Helper function to fetch from CMS API
@@ -345,13 +344,13 @@ const resolveEntrySlug = async (entryId: string): Promise<string> => {
   // Return from cache if available
   if (entriesCache.has(entryId)) {
     const entry = entriesCache.get(entryId)
-    return (entry?.fields?.id as string) || (entry?.fields?.slug as string) || ''
+    return entry?.fields?.id as string
   }
 
   // If already fetching, wait for that promise
   if (entriesCachePromises.has(entryId)) {
     const entry = await entriesCachePromises.get(entryId)
-    return (entry?.fields?.id as string) || (entry?.fields?.slug as string) || ''
+    return entry?.fields?.id as string
   }
 
   try {
@@ -362,7 +361,7 @@ const resolveEntrySlug = async (entryId: string): Promise<string> => {
     entriesCache.set(entryId, entry)
     entriesCachePromises.delete(entryId)
 
-    return (entry?.fields?.id as string) || (entry?.fields?.slug as string) || ''
+    return entry?.fields?.id as string
   } catch {
     entriesCachePromises.delete(entryId)
     return ''
