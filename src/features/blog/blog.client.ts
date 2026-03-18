@@ -12,7 +12,8 @@ import type {
   GetBlogPostBySlugParams,
   GetBlogPostParams,
   GetBlogPostPreviewParams,
-  GetBlogPostsParams
+  GetBlogPostsParams,
+  SlugFields
 } from './blog.types'
 import type { CMSEntry, CMSListResponse } from './cms.types'
 
@@ -275,7 +276,7 @@ const blogClient = cmsClient.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
         try {
           const categoryEntry = listResponse.items.find(item => {
-            const fields = item.fields as { id?: string; slug?: string; title?: string }
+            const fields = item.fields as unknown as SlugFields
             return getEntrySlug(fields, item.sys.id) === slug
           })
 
@@ -316,10 +317,7 @@ const blogClient = cmsClient.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse, _meta, { postSlug }) => {
         try {
           // Find the post with matching slug in the response
-          const postEntry = listResponse.items.find(item => {
-            const fields = item.fields as { id?: string }
-            return getEntrySlug(fields) === postSlug
-          })
+          const postEntry = listResponse.items.find(item => item.fields.id === postSlug)
 
           if (!postEntry) {
             throw {
@@ -407,7 +405,7 @@ const blogClient = cmsClient.injectEndpoints({
       transformResponse: async (listResponse: CMSListResponse, _meta, { slug }) => {
         try {
           const authorEntry = listResponse.items.find(item => {
-            const fields = item.fields as { id?: string; slug?: string; title?: string }
+            const fields = item.fields as unknown as SlugFields
             return getEntrySlug(fields, item.sys.id) === slug
           })
 

@@ -1,6 +1,5 @@
 interface SlugFields {
-  id?: string
-  title?: string
+  id: string
 }
 
 interface GetBlogPostsParams {

@@ -8,10 +8,9 @@ import type { CMSEntry, CMSListResponse, CMSQueryParams, CMSReference } from './
 
 /**
  * Extracts slug from CMS entry fields.
- * Priority: fields.id > slugified title > sys.id fallback
  */
 const getEntrySlug = (fields: SlugFields, sysId?: string): string => {
-  return fields.id || fields.title?.toLowerCase().replace(/\s+/g, '-') || sysId || ''
+  return fields.id || sysId || ''
 }
 
 // Helper function to fetch from CMS API
