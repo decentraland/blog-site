@@ -13,7 +13,7 @@ import { AuthorHeaderBox, AuthorImage, CenteredBox } from './AuthorPage.styled'
 const AuthorPostList = ({ author }: { author: BlogAuthor }) => {
   const { t } = useTranslation()
   const { posts, isLoadingInitial, error } = useInfiniteBlogPosts({
-    author: author.id
+    author: author.slug
   })
 
   if (error) {
