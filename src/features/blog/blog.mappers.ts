@@ -180,7 +180,7 @@ function mapBlogPost(entry: CMSEntry | null | undefined): BlogPost | null {
   }
 
   const title = (entry.fields.title as string | undefined) || ''
-  const slug = (entry.fields.slug as string | undefined) || slugify(title)
+  const slug = entry.fields.id as string | undefined
   if (!slug) {
     return null
   }

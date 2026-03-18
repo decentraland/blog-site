@@ -317,8 +317,8 @@ const blogClient = cmsClient.injectEndpoints({
         try {
           // Find the post with matching slug in the response
           const postEntry = listResponse.items.find(item => {
-            const fields = item.fields as { id?: string; slug?: string; title?: string }
-            return getEntrySlug(fields, item.sys.id) === postSlug
+            const fields = item.fields as { id?: string }
+            return getEntrySlug(fields) === postSlug
           })
 
           if (!postEntry) {

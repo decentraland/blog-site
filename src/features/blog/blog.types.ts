@@ -1,6 +1,5 @@
 interface SlugFields {
   id?: string
-  slug?: string
   title?: string
 }
 
