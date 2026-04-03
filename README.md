@@ -1,4 +1,4 @@
-# Decentraland Blog UI
+# Decentraland Blog Site
 
 UI application for the Decentraland blog.
 
