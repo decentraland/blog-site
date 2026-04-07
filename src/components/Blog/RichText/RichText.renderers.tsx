@@ -2,7 +2,7 @@ import { TwitterTweetEmbed } from 'react-twitter-embed'
 import type { Block, Inline, Text } from '@contentful/rich-text-types'
 import { getEnv } from '../../../config'
 import type { ContentfulAsset } from '../../../shared/types/blog.domain'
-import { EmbeddedImage, Hyperlink, InternalLink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
+import { EmbeddedImage, Hyperlink, InstagramEmbed, InternalLink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
 
 const renderYouTubeEmbed = (uri: string) => {
   const url = new URL(uri)
@@ -27,6 +27,13 @@ const renderTwitterEmbed = (uri: string) => {
       <TwitterTweetEmbed tweetId={tweetId} options={{ theme: 'dark' }} />
     </TwitterContainer>
   )
+}
+
+const renderInstagramEmbed = (uri: string) => {
+  const url = new URL(uri)
+  const embedSrc = `https://www.instagram.com${url.pathname}embed/`
+
+  return <InstagramEmbed src={embedSrc} title="Instagram Reel" scrolling="no" allowFullScreen />
 }
 
 const renderEmbeddedAsset = (node: Block | Inline, assets: Record<string, ContentfulAsset>) => {
@@ -54,6 +61,10 @@ const renderHyperlink = (node: Block | Inline) => {
 
   if ((uri.includes('twitter.com') || uri.includes('x.com')) && contentValue === uri) {
     return renderTwitterEmbed(uri)
+  }
+
+  if (uri.includes('instagram.com') && contentValue === uri) {
+    return renderInstagramEmbed(uri)
   }
 
   if (uri.includes('linkedin.com') && contentValue === uri) {
