@@ -30,10 +30,18 @@ const renderTwitterEmbed = (uri: string) => {
 }
 
 const renderInstagramEmbed = (uri: string) => {
-  const url = new URL(uri)
-  const embedSrc = `https://www.instagram.com${url.pathname}embed/`
+  let url: URL
+  try {
+    url = new URL(uri)
+  } catch {
+    return null
+  }
 
-  return <InstagramEmbed src={embedSrc} title="Instagram Reel" scrolling="no" allowFullScreen />
+  const pathname = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`
+  const embedSrc = `https://www.instagram.com${pathname}embed/`
+  const title = uri.includes('/reel/') ? 'Instagram Reel' : 'Instagram Post'
+
+  return <InstagramEmbed src={embedSrc} title={title} scrolling="no" allowFullScreen />
 }
 
 const renderEmbeddedAsset = (node: Block | Inline, assets: Record<string, ContentfulAsset>) => {
@@ -64,7 +72,13 @@ const renderHyperlink = (node: Block | Inline) => {
   }
 
   if (uri.includes('instagram.com') && contentValue === uri) {
-    return renderInstagramEmbed(uri)
+    try {
+      if (new URL(uri).hostname.endsWith('instagram.com')) {
+        return renderInstagramEmbed(uri)
+      }
+    } catch {
+      // malformed URL — fall through to plain hyperlink
+    }
   }
 
   if (uri.includes('linkedin.com') && contentValue === uri) {
