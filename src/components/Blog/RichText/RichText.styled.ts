@@ -114,6 +114,14 @@ const YouTubeEmbed = styled('iframe')(({ theme }) => ({
   marginBottom: theme.spacing(2)
 }))
 
+const InstagramEmbed = styled('iframe')(({ theme }) => ({
+  width: 400,
+  height: 480,
+  border: 0,
+  marginTop: theme.spacing(2),
+  marginBottom: theme.spacing(2)
+}))
+
 const ListItem = styled('li')(() => ({}))
 
 const OrderedList = styled('ol')(({ theme }) => ({
@@ -134,6 +142,7 @@ export {
   Heading5,
   Heading6,
   Hyperlink,
+  InstagramEmbed,
   InternalLink,
   LinkedInEmbed,
   ListItem,
