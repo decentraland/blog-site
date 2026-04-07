@@ -1,23 +1,21 @@
 import { Box, styled } from 'decentraland-ui2'
 
+const STANDALONE_NAVBAR_HEIGHT = '66px'
+
 const PageContainer = styled(Box)(() => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
-  paddingTop: '66px'
+  paddingTop: STANDALONE_NAVBAR_HEIGHT
 }))
 
-const ContentWrapper = styled(Box, {
-  shouldForwardProp: prop => prop !== '$embedded'
-})<{ $embedded?: boolean }>(({ theme, $embedded }) => ({
+const ContentWrapper = styled(Box)(({ theme }) => ({
   flex: 1,
-  padding: $embedded ? `calc(96px + ${theme.spacing(5)}) 0 ${theme.spacing(2)} 0` : theme.spacing(5, 0, 2, 0),
+  padding: theme.spacing(5, 0, 2, 0),
   maxWidth: theme.spacing(133),
   margin: '0 auto',
   [theme.breakpoints.down('md')]: {
-    padding: $embedded
-      ? `calc(96px + ${theme.spacing(5)}) ${theme.spacing(2)} ${theme.spacing(2)} ${theme.spacing(2)}`
-      : theme.spacing(5, 2, 2, 2)
+    padding: theme.spacing(5, 2, 2, 2)
   }
 }))
 
