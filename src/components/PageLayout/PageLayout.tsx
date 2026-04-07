@@ -115,9 +115,9 @@ export function PageLayout(props: PageLayoutProps) {
   if (!standalone) {
     return (
       <>
-        {showBlogNavigation && <BlogNavigation active={activeCategory} />}
+        {showBlogNavigation && <BlogNavigation active={activeCategory} embedded />}
         {banner}
-        <ContentWrapper $embedded={!standalone}>{children}</ContentWrapper>
+        <ContentWrapper>{children}</ContentWrapper>
         {relatedPosts}
       </>
     )
@@ -128,7 +128,7 @@ export function PageLayout(props: PageLayoutProps) {
       <Navbar {...navbarProps} />
       {showBlogNavigation && <BlogNavigation active={activeCategory} />}
       {banner}
-      <ContentWrapper $embedded={!standalone}>{children}</ContentWrapper>
+      <ContentWrapper>{children}</ContentWrapper>
       {relatedPosts}
       <FooterLanding />
       <Footer languages={[{ code: SupportedLanguage.EN, name: 'English', flag: '🇺🇸' }]} hideSocialNetworks />

@@ -2,8 +2,11 @@
 import { Link } from 'react-router-dom'
 import { Box, dclColors, styled } from 'decentraland-ui2'
 
-const NavbarContainer = styled(Box)(() => ({
-  width: '100%'
+const NavbarContainer = styled(Box, {
+  shouldForwardProp: prop => prop !== '$embedded'
+})<{ $embedded?: boolean }>(({ $embedded }) => ({
+  width: '100%',
+  ...($embedded && { marginTop: '96px' })
 }))
 
 const NavbarContent = styled(Box)(({ theme }) => ({

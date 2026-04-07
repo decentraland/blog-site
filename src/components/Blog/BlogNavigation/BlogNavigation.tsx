@@ -14,7 +14,7 @@ import {
   NavbarWrapper
 } from './BlogNavigation.styled'
 
-const BlogNavigation = ({ active }: BlogNavigationProps) => {
+const BlogNavigation = ({ active, embedded }: BlogNavigationProps) => {
   const { t } = useTranslation()
   const location = useLocation()
   const { data: allCategories = [] } = useGetBlogCategoriesQuery()
@@ -37,7 +37,7 @@ const BlogNavigation = ({ active }: BlogNavigationProps) => {
   )
 
   return (
-    <NavbarContainer>
+    <NavbarContainer $embedded={embedded}>
       <NavbarContent>
         <NavbarWrapper>
           <NavbarCategories>
