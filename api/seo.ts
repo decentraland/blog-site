@@ -13,41 +13,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 // Constants
 // =============================================================================
 
-const CRAWLER_USER_AGENTS = [
-  // Search engines
-  'googlebot',
-  'bingbot',
-  'yandex',
-  'baiduspider',
-  'duckduckbot',
-  'applebot',
-  // Social networks
-  'facebookexternalhit',
-  'facebot',
-  'twitterbot',
-  'linkedinbot',
-  'pinterest',
-  'redditbot',
-  'tumblr',
-  'vkshare',
-  // Messaging apps
-  'whatsapp',
-  'telegrambot',
-  'discordbot',
-  'slackbot',
-  'slack-imgproxy',
-  'viber',
-  'skypeuripreview',
-  // Other services
-  'embedly',
-  'quora',
-  'outbrain',
-  'rogerbot',
-  'showyoubot',
-  'w3c_validator',
-  'opengraph'
-]
-
 const CMS_BASE_URL = 'https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master'
 
 const DEFAULTS = {
@@ -289,6 +254,11 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
     html = html.replace('</head>', articleMeta)
   }
 
+  // Inject preload for hero image so the browser discovers it at HTML parse time
+  if (imageUrl && imageUrl !== DEFAULTS.image) {
+    html = html.replace('</head>', `<link rel="preload" as="image" href="${imageUrl}" fetchpriority="high" />\n</head>`)
+  }
+
   return html
 }
 
@@ -296,27 +266,14 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
 // Request Handler
 // =============================================================================
 
-const isCrawler = (userAgent: string): boolean => {
-  const ua = userAgent.toLowerCase()
-  return CRAWLER_USER_AGENTS.some(crawler => ua.includes(crawler))
-}
-
 async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const userAgent = req.headers['user-agent'] || ''
   const blogPath = (req.query.path as string) || '/blog'
   const searchQuery = req.query.q as string | null
-  const isSEOTest = req.query.seo === 'true'
 
   const protocol = req.headers['x-forwarded-proto'] || 'https'
   const host = req.headers['x-forwarded-host'] || req.headers.host || ''
   const origin = `${protocol}://${host}`
   const actualUrl = `${origin}${blogPath}`
-
-  // Redirect non-crawlers to actual URL
-  if (!isCrawler(userAgent) && !isSEOTest) {
-    res.redirect(307, actualUrl)
-    return
-  }
 
   try {
     const indexResponse = await fetch(`${origin}/index.html`)
