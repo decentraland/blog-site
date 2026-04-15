@@ -28,23 +28,19 @@ const CardContainer = styled(Card)(() => ({
   }
 }))
 
-const CardImage = styled(Box, {
-  shouldForwardProp: prop => prop !== '$imageUrl'
-})<{ $imageUrl: string }>(({ $imageUrl }) => ({
-  backgroundImage: `url("${$imageUrl}")`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
+const CardImage = styled('img')(() => ({
+  objectFit: 'cover',
   boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.16)',
   borderRadius: '5px',
   width: '100%',
+  aspectRatio: '2 / 1',
   marginBottom: '12px',
-  paddingBottom: '50%',
   transition: 'transform 250ms ease, box-shadow 250ms ease'
 }))
 
 const CardImageLink = styled(Link)(() => ({
   display: 'block',
-  '&:hover .post-card__image, &:hover > div': {
+  '&:hover > img': {
     transform: 'translate(0, -4px)',
     boxShadow: '0 10px 20px 0 rgba(0, 0, 0, 0.12)'
   }

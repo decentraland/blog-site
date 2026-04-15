@@ -1,11 +1,13 @@
+import { Suspense, lazy } from 'react'
 import { Navigate, createBrowserRouter } from 'react-router-dom'
-import { AuthorPage } from './pages/AuthorPage'
 import { BlogPage } from './pages/BlogPage'
 import { CategoryPage } from './pages/CategoryPage'
 import { PostPage } from './pages/PostPage'
-import { PreviewPage } from './pages/PreviewPage'
-import { SearchPage } from './pages/SearchPage'
-import { SignInRedirect } from './pages/SignInRedirect'
+
+const AuthorPage = lazy(() => import('./pages/AuthorPage').then(m => ({ default: m.AuthorPage })))
+const PreviewPage = lazy(() => import('./pages/PreviewPage').then(m => ({ default: m.PreviewPage })))
+const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default: m.SearchPage })))
+const SignInRedirect = lazy(() => import('./pages/SignInRedirect').then(m => ({ default: m.SignInRedirect })))
 
 export const router = createBrowserRouter([
   {
@@ -18,19 +20,35 @@ export const router = createBrowserRouter([
   },
   {
     path: '/blog/preview',
-    element: <PreviewPage />
+    element: (
+      <Suspense>
+        <PreviewPage />
+      </Suspense>
+    )
   },
   {
     path: '/blog/search',
-    element: <SearchPage />
+    element: (
+      <Suspense>
+        <SearchPage />
+      </Suspense>
+    )
   },
   {
     path: '/blog/sign-in',
-    element: <SignInRedirect />
+    element: (
+      <Suspense>
+        <SignInRedirect />
+      </Suspense>
+    )
   },
   {
     path: '/blog/author/:authorSlug',
-    element: <AuthorPage />
+    element: (
+      <Suspense>
+        <AuthorPage />
+      </Suspense>
+    )
   },
   {
     path: '/blog/:categorySlug',
