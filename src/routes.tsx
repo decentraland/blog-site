@@ -1,11 +1,4 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
-import { AuthorPage } from './pages/AuthorPage'
-import { BlogPage } from './pages/BlogPage'
-import { CategoryPage } from './pages/CategoryPage'
-import { PostPage } from './pages/PostPage'
-import { PreviewPage } from './pages/PreviewPage'
-import { SearchPage } from './pages/SearchPage'
-import { SignInRedirect } from './pages/SignInRedirect'
 
 export const router = createBrowserRouter([
   {
@@ -14,30 +7,30 @@ export const router = createBrowserRouter([
   },
   {
     path: '/blog',
-    element: <BlogPage />
+    lazy: () => import('./pages/BlogPage').then(m => ({ Component: m.BlogPage }))
   },
   {
     path: '/blog/preview',
-    element: <PreviewPage />
+    lazy: () => import('./pages/PreviewPage').then(m => ({ Component: m.PreviewPage }))
   },
   {
     path: '/blog/search',
-    element: <SearchPage />
+    lazy: () => import('./pages/SearchPage').then(m => ({ Component: m.SearchPage }))
   },
   {
     path: '/blog/sign-in',
-    element: <SignInRedirect />
+    lazy: () => import('./pages/SignInRedirect').then(m => ({ Component: m.SignInRedirect }))
   },
   {
     path: '/blog/author/:authorSlug',
-    element: <AuthorPage />
+    lazy: () => import('./pages/AuthorPage').then(m => ({ Component: m.AuthorPage }))
   },
   {
     path: '/blog/:categorySlug',
-    element: <CategoryPage />
+    lazy: () => import('./pages/CategoryPage').then(m => ({ Component: m.CategoryPage }))
   },
   {
     path: '/blog/:categorySlug/:postSlug',
-    element: <PostPage />
+    lazy: () => import('./pages/PostPage').then(m => ({ Component: m.PostPage }))
   }
 ])

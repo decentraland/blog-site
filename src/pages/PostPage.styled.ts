@@ -65,6 +65,7 @@ const SubtitleText = styled(Typography)(({ theme }) => ({
 const PostImage = styled('img')(({ theme }) => ({
   width: '100%',
   height: 'auto',
+  aspectRatio: '2 / 1',
   borderRadius: theme.spacing(2),
   marginBottom: theme.spacing(5),
   objectFit: 'cover',

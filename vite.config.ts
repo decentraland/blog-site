@@ -39,6 +39,14 @@ export default defineConfig(({ command, mode }) => {
     build: {
       target: 'esnext',
       chunkSizeWarningLimit: 1024,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            contentful: ['@contentful/rich-text-react-renderer', '@contentful/rich-text-types'],
+            web3: ['wagmi', 'viem']
+          }
+        }
+      },
       commonjsOptions: {
         transformMixedEsModules: true,
         include: [/node_modules/]

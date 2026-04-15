@@ -34,6 +34,7 @@ const CardImage = styled(Box, {
   backgroundImage: `url("${$imageUrl}")`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
+  backgroundColor: '#1a1a2e',
   boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.16)',
   borderRadius: '5px',
   width: '100%',

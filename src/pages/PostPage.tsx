@@ -15,6 +15,7 @@ import { OGType, SEO } from '../components/SEO'
 import { getEnv } from '../config'
 import { useGetBlogPostBySlugQuery, useGetBlogPostsQuery } from '../features/blog/blog.client'
 import type { BlogPost, PaginatedBlogPosts } from '../shared/types/blog.domain'
+import { contentfulImageUrl } from '../shared/utils/contentfulImage'
 import { formatUtcDate } from '../shared/utils/date'
 import { locations } from '../shared/utils/locations'
 import {
@@ -150,7 +151,14 @@ export const PostPage = () => {
         tags={displayPost?.category.title ? [displayPost.category.title] : undefined}
       />
       <ContentContainer>
-        <PostImage src={displayPost.image.url} alt={displayPost.title} />
+        <PostImage
+          src={contentfulImageUrl(displayPost.image.url, { width: 768, format: 'webp', quality: 80 })}
+          alt={displayPost.title}
+          width={displayPost.image.width}
+          height={displayPost.image.height}
+          fetchPriority="high"
+          decoding="async"
+        />
 
         <HeaderBox>
           <MetaText as="span">
