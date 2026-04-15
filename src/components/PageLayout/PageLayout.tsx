@@ -5,7 +5,7 @@ import { useAuthIdentity, useTokenBalance, useWallet } from '@dcl/core-web3'
 import { usePageTracking } from '@dcl/hooks'
 import { ChainId, Network } from '@dcl/schemas'
 import { Env } from '@dcl/ui-env'
-import { Footer, FooterLanding, ManaBalancesProps, Navbar, NavbarPages, SupportedLanguage } from 'decentraland-ui2'
+import { Footer, FooterLanding, ManaBalancesProps, Navbar, SupportedLanguage } from 'decentraland-ui2'
 import type { NavbarProps } from 'decentraland-ui2'
 import { config, getEnv } from '../../config'
 import { usePageNotifications } from '../../features/notifications/usePageNotifications'
@@ -92,7 +92,7 @@ export function PageLayout(props: PageLayoutProps) {
   const navbarProps = useMemo(
     () =>
       ({
-        activePage: NavbarPages.LEARN,
+        activePage: 'learn',
         isSignedIn: isConnected,
         isSigningIn: isConnecting,
         isDisconnecting,
