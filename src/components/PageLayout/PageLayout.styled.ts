@@ -1,10 +1,12 @@
 import { Box, styled } from 'decentraland-ui2'
 
+const STANDALONE_NAVBAR_HEIGHT = '66px'
+
 const PageContainer = styled(Box)(() => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
-  paddingTop: '66px'
+  paddingTop: STANDALONE_NAVBAR_HEIGHT
 }))
 
 const ContentWrapper = styled(Box)(({ theme }) => ({

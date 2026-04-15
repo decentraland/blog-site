@@ -1,7 +1,7 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useContext, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Address } from 'viem'
-import { useTokenBalance, useWallet } from '@dcl/core-web3'
+import { useAuthIdentity, useTokenBalance, useWallet } from '@dcl/core-web3'
 import { usePageTracking } from '@dcl/hooks'
 import { ChainId, Network } from '@dcl/schemas'
 import { Env } from '@dcl/ui-env'
@@ -10,9 +10,9 @@ import type { NavbarProps } from 'decentraland-ui2'
 import { config, getEnv } from '../../config'
 import { usePageNotifications } from '../../features/notifications/usePageNotifications'
 import { useGetProfileQuery } from '../../features/profile/profile.client'
-import { useAuthIdentity } from '../../hooks/useAuthIdentity'
 import { redirectToAuth } from '../../utils/authRedirect'
 import { BlogNavigation } from '../Blog/BlogNavigation'
+import { StandaloneContext } from './StandaloneContext'
 import type { PageLayoutProps } from './PageLayout.types'
 import { ContentWrapper, PageContainer } from './PageLayout.styled'
 
@@ -29,6 +29,7 @@ const parseTokenBalance = (balance: string | null) => {
 
 export function PageLayout(props: PageLayoutProps) {
   const { children, activeCategory, banner, showBlogNavigation = false, relatedPosts } = props
+  const standalone = useContext(StandaloneContext)
   const location = useLocation()
   const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
   usePageTracking(location.pathname)
@@ -110,6 +111,17 @@ export function PageLayout(props: PageLayoutProps) {
       }) as NavbarProps,
     [isConnected, isConnecting, isDisconnecting, address, avatar, manaBalances, notificationProps, handleSignIn, handleSignOut]
   )
+
+  if (!standalone) {
+    return (
+      <>
+        {showBlogNavigation && <BlogNavigation active={activeCategory} embedded />}
+        {banner}
+        <ContentWrapper>{children}</ContentWrapper>
+        {relatedPosts}
+      </>
+    )
+  }
 
   return (
     <PageContainer>
