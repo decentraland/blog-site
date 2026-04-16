@@ -1,9 +1,9 @@
 import { Suspense, lazy } from 'react'
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 import { BlogPage } from './pages/BlogPage'
-import { CategoryPage } from './pages/CategoryPage'
-import { PostPage } from './pages/PostPage'
 
+const CategoryPage = lazy(() => import('./pages/CategoryPage').then(m => ({ default: m.CategoryPage })))
+const PostPage = lazy(() => import('./pages/PostPage').then(m => ({ default: m.PostPage })))
 const AuthorPage = lazy(() => import('./pages/AuthorPage').then(m => ({ default: m.AuthorPage })))
 const PreviewPage = lazy(() => import('./pages/PreviewPage').then(m => ({ default: m.PreviewPage })))
 const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default: m.SearchPage })))
@@ -52,10 +52,18 @@ export const router = createBrowserRouter([
   },
   {
     path: '/blog/:categorySlug',
-    element: <CategoryPage />
+    element: (
+      <Suspense>
+        <CategoryPage />
+      </Suspense>
+    )
   },
   {
     path: '/blog/:categorySlug/:postSlug',
-    element: <PostPage />
+    element: (
+      <Suspense>
+        <PostPage />
+      </Suspense>
+    )
   }
 ])

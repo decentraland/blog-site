@@ -1,8 +1,10 @@
-import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { Suspense, lazy } from 'react'
 import type { Block, Inline, Text } from '@contentful/rich-text-types'
 import { getEnv } from '../../../config'
 import type { ContentfulAsset } from '../../../shared/types/blog.domain'
 import { EmbeddedImage, Hyperlink, InstagramEmbed, InternalLink, LinkedInEmbed, TwitterContainer, YouTubeEmbed } from './RichText.styled'
+
+const LazyTwitterEmbed = lazy(() => import('react-twitter-embed').then(m => ({ default: m.TwitterTweetEmbed })))
 
 const renderYouTubeEmbed = (uri: string) => {
   const url = new URL(uri)
@@ -14,6 +16,7 @@ const renderYouTubeEmbed = (uri: string) => {
       title="YouTube video player"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowFullScreen
+      loading="lazy"
     />
   )
 }
@@ -24,7 +27,9 @@ const renderTwitterEmbed = (uri: string) => {
 
   return (
     <TwitterContainer>
-      <TwitterTweetEmbed tweetId={tweetId} options={{ theme: 'dark' }} />
+      <Suspense>
+        <LazyTwitterEmbed tweetId={tweetId} options={{ theme: 'dark' }} />
+      </Suspense>
     </TwitterContainer>
   )
 }
@@ -41,18 +46,19 @@ const renderInstagramEmbed = (uri: string) => {
   const embedSrc = `https://www.instagram.com${pathname}embed/`
   const title = uri.includes('/reel/') ? 'Instagram Reel' : 'Instagram Post'
 
-  return <InstagramEmbed src={embedSrc} title={title} scrolling="no" allowFullScreen />
+  return <InstagramEmbed src={embedSrc} title={title} scrolling="no" allowFullScreen loading="lazy" />
 }
 
 const renderEmbeddedAsset = (node: Block | Inline, assets: Record<string, ContentfulAsset>) => {
   const assetId = node.data?.target?.sys?.id as string | undefined
   if (assetId && assets[assetId]) {
-    return <EmbeddedImage src={assets[assetId].url} alt="" />
+    const asset = assets[assetId]
+    return <EmbeddedImage src={asset.url} alt="" width={asset.width} height={asset.height} loading="lazy" decoding="async" />
   }
 
   const url = node.data?.target?.fields?.file?.url as string | undefined
   if (url) {
-    return <EmbeddedImage src={url.startsWith('//') ? `https:${url}` : url} alt="" />
+    return <EmbeddedImage src={url.startsWith('//') ? `https:${url}` : url} alt="" loading="lazy" decoding="async" />
   }
 
   return null
@@ -82,7 +88,7 @@ const renderHyperlink = (node: Block | Inline) => {
   }
 
   if (uri.includes('linkedin.com') && contentValue === uri) {
-    return <LinkedInEmbed src={uri} title="Embedded Linkedin Post" />
+    return <LinkedInEmbed src={uri} title="Embedded Linkedin Post" loading="lazy" />
   }
 
   // Check if this is an internal blog link (e.g. https://decentraland.org/blog/...)

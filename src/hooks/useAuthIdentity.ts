@@ -33,12 +33,21 @@ function useAuthIdentity(): UseAuthIdentityResult {
       return
     }
 
-    setIdentity(readIdentity(walletAddress))
+    const current = readIdentity(walletAddress)
+    setIdentity(current)
 
-    // Re-read identity periodically to catch SSO writes after wallet connect
+    // Only poll when connected but identity is missing (waiting for SSO write)
+    if (current && isIdentityValid(current)) {
+      return
+    }
+
     const interval = setInterval(() => {
-      setIdentity(readIdentity(walletAddress))
-    }, 1000)
+      const found = readIdentity(walletAddress)
+      setIdentity(found)
+      if (found && isIdentityValid(found)) {
+        clearInterval(interval)
+      }
+    }, 3000)
 
     return () => clearInterval(interval)
   }, [walletAddress])

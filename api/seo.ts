@@ -62,7 +62,7 @@ interface CMSListResponse {
 
 const fetchJSON = async <T>(url: string): Promise<T | null> => {
   try {
-    const response = await fetch(url)
+    const response = await fetch(url, { signal: AbortSignal.timeout(5000) })
     return response.ok ? ((await response.json()) as T) : null
   } catch {
     return null
@@ -292,7 +292,8 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     const [originalHTML, seoData] = await Promise.all([indexResponse.text(), fetchSEOData(blogPath, searchQuery)])
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
-    res.setHeader('Cache-Control', 'public, max-age=3600')
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
+    res.setHeader('Vary', 'Accept-Encoding')
     res.setHeader('X-SEO-Function', 'active')
     res.status(200).send(generateHTML(seoData, originalHTML, actualUrl))
   } catch (error) {

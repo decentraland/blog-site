@@ -72,6 +72,7 @@ const Blockquote = styled('blockquote')(({ theme }) => ({
 
 const EmbeddedImage = styled('img')(({ theme }) => ({
   maxWidth: '100%',
+  height: 'auto',
   marginTop: theme.spacing(2),
   marginBottom: theme.spacing(2)
 }))
