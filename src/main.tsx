@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import { PersistGate } from 'redux-persist/integration/react'
 import { Web3CoreProvider, Web3SyncProvider } from '@dcl/core-web3'
+import { WalletStateProvider } from '@dcl/core-web3/lazy'
 import { AnalyticsProvider, TranslationProvider } from '@dcl/hooks'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
 import { persistor, store } from './app/store'
@@ -32,17 +33,19 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <Web3CoreProvider config={web3Config}>
-          <Web3SyncProvider>
-            <DclThemeProvider theme={darkTheme}>
-              <AnalyticsProvider writeKey={segmentWriteKey}>
-                <TranslationProvider locale="en" translations={{ en }} fallbackLocale="en">
-                  <RouterProvider router={router} />
-                </TranslationProvider>
-              </AnalyticsProvider>
-            </DclThemeProvider>
-          </Web3SyncProvider>
-        </Web3CoreProvider>
+        <WalletStateProvider>
+          <Web3CoreProvider config={web3Config}>
+            <Web3SyncProvider>
+              <DclThemeProvider theme={darkTheme}>
+                <AnalyticsProvider writeKey={segmentWriteKey}>
+                  <TranslationProvider locale="en" translations={{ en }} fallbackLocale="en">
+                    <RouterProvider router={router} />
+                  </TranslationProvider>
+                </AnalyticsProvider>
+              </DclThemeProvider>
+            </Web3SyncProvider>
+          </Web3CoreProvider>
+        </WalletStateProvider>
       </PersistGate>
     </Provider>
   </StrictMode>
