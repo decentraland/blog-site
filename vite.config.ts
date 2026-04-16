@@ -24,13 +24,13 @@ export default defineConfig(({ command, mode }) => {
           'react-router-dom': { singleton: true, requiredVersion: '^7.9.0' },
           '@emotion/react': { singleton: true, requiredVersion: '^11.14.0' },
           '@emotion/styled': { singleton: true, requiredVersion: '^11.14.0' },
-          '@reduxjs/toolkit': { singleton: true, requiredVersion: '^2.9.0' },
+          '@reduxjs/toolkit': { singleton: true, requiredVersion: '^2.10.0' },
           'react-redux': { singleton: true, requiredVersion: '^9.2.0' },
           wagmi: { singleton: true, requiredVersion: '^2.19.0' },
           viem: { singleton: true, requiredVersion: '^2.44.0' },
-          '@dcl/hooks': { singleton: true, requiredVersion: '^1.2.0' },
-          'decentraland-ui2': { singleton: true, requiredVersion: '^2.0.0' },
-          '@dcl/schemas': { singleton: true, requiredVersion: '^25.2.0' }
+          '@dcl/hooks': { singleton: true, requiredVersion: '^1.3.0' },
+          'decentraland-ui2': { singleton: true, requiredVersion: '^3.4.0' },
+          '@dcl/schemas': { singleton: true, requiredVersion: '^26.1.0' }
         } as Record<string, { singleton: boolean; requiredVersion: string }>
       }),
       /* eslint-enable @typescript-eslint/naming-convention */
