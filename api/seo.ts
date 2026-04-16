@@ -7,6 +7,8 @@
  * - GET /api/seo?path=/blog/category/post-slug&seo=true
  */
 
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 // =============================================================================
@@ -21,6 +23,42 @@ const DEFAULTS = {
   image: 'https://cms-images.decentraland.org/ea2ybdmmn1kv/7tYISdowuJYIbSIDqij87H/f3524d454d8e29702792a6b674f5550d/GI_Landscape.Small.png',
   siteName: 'Decentraland'
 } as const
+
+// Allowlist of canonical origins used to build the returned absolute URLs (canonical, og:url).
+// Host headers are attacker-controlled; relying on them enables open redirects and SSRF.
+const ALLOWED_ORIGINS = new Set<string>(['https://decentraland.org', 'https://decentraland.zone', 'https://decentraland.today'])
+const DEFAULT_ORIGIN = 'https://decentraland.org'
+
+// Read the static HTML shell from disk once at cold start instead of looping back over HTTP.
+// Falls back to an empty string if the build output is not available (e.g. local `vercel dev`
+// before `vite build`); in that case the function will return a redirect.
+const INDEX_HTML: string = (() => {
+  try {
+    return readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf-8')
+  } catch {
+    return ''
+  }
+})()
+
+// =============================================================================
+// Escaping helpers
+// =============================================================================
+
+const escapeHTML = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+
+// Only allow http(s) URLs; anything else (javascript:, data:, etc.) is dropped.
+const safeUrl = (value: string, fallback: string): string => {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.toString()
+    }
+  } catch {
+    // fallthrough
+  }
+  return fallback
+}
 
 // =============================================================================
 // Types
@@ -101,8 +139,9 @@ const findEntryBySlug = async (endpoint: string, slug: string): Promise<CMSEntry
 }
 
 const fetchBlogPost = async (postSlug: string): Promise<SEOData | null> => {
-  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}/blog/posts?limit=200`)
-  const entry = data?.items.find(item => getSlug(item.fields as Record<string, unknown>, item.sys.id) === postSlug)
+  // Filter server-side by slug instead of downloading up to 200 entries and `.find()`ing locally.
+  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}/blog/posts?fields.slug=${encodeURIComponent(postSlug)}&limit=1`)
+  const entry = data?.items[0]
   if (!entry?.fields) return null
 
   const fields = entry.fields
@@ -212,9 +251,15 @@ const fetchSEOData = async (pathname: string, searchQuery: string | null): Promi
 const replaceMetaTag = (html: string, pattern: RegExp, replacement: string): string => html.replace(pattern, replacement)
 
 const generateHTML = (data: SEOData | null, originalHTML: string, url: string): string => {
-  const title = data?.title ? `${data.title} | ${DEFAULTS.siteName}` : DEFAULTS.title
-  const description = data?.description || DEFAULTS.description
-  const imageUrl = data?.imageUrl || DEFAULTS.image
+  // Escape every interpolated value to prevent reflected/stored XSS via CMS fields or query strings.
+  const rawTitle = data?.title ? `${data.title} | ${DEFAULTS.siteName}` : DEFAULTS.title
+  const rawDescription = data?.description || DEFAULTS.description
+  const rawImageUrl = safeUrl(data?.imageUrl || DEFAULTS.image, DEFAULTS.image)
+
+  const title = escapeHTML(rawTitle)
+  const description = escapeHTML(rawDescription)
+  const imageUrl = escapeHTML(rawImageUrl)
+  const safeCanonicalUrl = escapeHTML(url)
   const ogType = data?.author ? 'article' : 'website'
 
   let html = originalHTML
@@ -222,7 +267,7 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
   // Basic meta tags
   html = replaceMetaTag(html, /<title>.*?<\/title>/i, `<title>${title}</title>`)
   html = replaceMetaTag(html, /<meta name="description" content="[^"]*"[^>]*>/i, `<meta name="description" content="${description}">`)
-  html = replaceMetaTag(html, /<link rel="canonical" href="[^"]*"[^>]*>/i, `<link rel="canonical" href="${url}">`)
+  html = replaceMetaTag(html, /<link rel="canonical" href="[^"]*"[^>]*>/i, `<link rel="canonical" href="${safeCanonicalUrl}">`)
 
   // Open Graph
   html = replaceMetaTag(html, /<meta property="og:title" content="[^"]*"[^>]*>/i, `<meta property="og:title" content="${title}">`)
@@ -232,7 +277,7 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
     `<meta property="og:description" content="${description}">`
   )
   html = replaceMetaTag(html, /<meta property="og:image" content="[^"]*"[^>]*>/i, `<meta property="og:image" content="${imageUrl}">`)
-  html = replaceMetaTag(html, /<meta property="og:url" content="[^"]*"[^>]*>/i, `<meta property="og:url" content="${url}">`)
+  html = replaceMetaTag(html, /<meta property="og:url" content="[^"]*"[^>]*>/i, `<meta property="og:url" content="${safeCanonicalUrl}">`)
   html = replaceMetaTag(html, /<meta property="og:type" content="[^"]*"[^>]*>/i, `<meta property="og:type" content="${ogType}">`)
 
   // Twitter Card
@@ -246,24 +291,22 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
 
   // Article meta (for posts)
   if (data?.author && data?.publishedDate) {
+    const author = escapeHTML(data.author)
+    const publishedDate = escapeHTML(data.publishedDate)
+    const category = data.category ? escapeHTML(data.category) : ''
     const articleMeta = `
-    <meta property="article:author" content="${data.author}">
-    <meta property="article:published_time" content="${data.publishedDate}">
-    ${data.category ? `<meta property="article:section" content="${data.category}">` : ''}
+    <meta property="article:author" content="${author}">
+    <meta property="article:published_time" content="${publishedDate}">
+    ${category ? `<meta property="article:section" content="${category}">` : ''}
   </head>`
     html = html.replace('</head>', articleMeta)
   }
 
-  // Inject preload for hero image so the browser discovers it at HTML parse time
-  if (imageUrl) {
+  // Preload hint for the hero image so the browser discovers it during HTML parse.
+  // We intentionally do NOT inject an <img> into #root: `createRoot().render()` wipes
+  // children, which would cause a flash + potential CLS regression.
+  if (rawImageUrl) {
     html = html.replace('</head>', `<link rel="preload" as="image" href="${imageUrl}" fetchpriority="high" />\n</head>`)
-  }
-
-  // Inject a visible <img> into <div id="root"> so the browser can paint LCP
-  // before React loads. React will replace this content on hydration.
-  if (imageUrl) {
-    const heroImg = `<img src="${imageUrl}" alt="${title}" width="697" height="349" style="object-fit:cover;border-radius:5px;max-width:100%;height:auto" fetchpriority="high" />`
-    html = html.replace('<div id="root"></div>', `<div id="root">${heroImg}</div>`)
   }
 
   return html
@@ -273,29 +316,56 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
 // Request Handler
 // =============================================================================
 
-async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const blogPath = (req.query.path as string) || '/blog'
-  const searchQuery = req.query.q as string | null
+// Only accept paths that start with `/blog` and contain no path traversal or protocol separators.
+// This prevents `?path=//evil.com` style open redirect payloads and garbage input.
+const sanitizeBlogPath = (raw: unknown): string => {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  if (typeof value !== 'string') return '/blog'
+  if (!value.startsWith('/blog')) return '/blog'
+  if (value.includes('..') || value.includes('//') || value.includes('\\')) return '/blog'
+  return value
+}
 
-  const protocol = req.headers['x-forwarded-proto'] || 'https'
-  const host = req.headers['x-forwarded-host'] || req.headers.host || ''
-  const origin = `${protocol}://${host}`
+const firstQueryValue = (raw: unknown): string | null => {
+  if (Array.isArray(raw)) return typeof raw[0] === 'string' ? raw[0] : null
+  return typeof raw === 'string' ? raw : null
+}
+
+const resolveOrigin = (req: VercelRequest): string => {
+  const forwardedHost = req.headers['x-forwarded-host']
+  const host = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost || req.headers.host
+  if (typeof host !== 'string' || !host) return DEFAULT_ORIGIN
+  const candidate = `https://${host}`
+  return ALLOWED_ORIGINS.has(candidate) ? candidate : DEFAULT_ORIGIN
+}
+
+async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const blogPath = sanitizeBlogPath(req.query.path)
+  const searchQuery = firstQueryValue(req.query.q)
+
+  const origin = resolveOrigin(req)
   const actualUrl = `${origin}${blogPath}`
 
-  try {
-    const indexResponse = await fetch(`${origin}/index.html`)
-    if (!indexResponse.ok) {
-      res.redirect(307, actualUrl)
-      return
-    }
+  // Security headers applied regardless of the response path.
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
 
-    const [originalHTML, seoData] = await Promise.all([indexResponse.text(), fetchSEOData(blogPath, searchQuery)])
+  if (!INDEX_HTML) {
+    // Build output unavailable — bail out to a redirect so Vercel serves the static asset directly.
+    res.redirect(307, actualUrl)
+    return
+  }
+
+  try {
+    const seoData = await fetchSEOData(blogPath, searchQuery)
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
-    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
+    // Shorter stale window: timely blog announcements should not be served up to 24h stale.
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=14400')
     res.setHeader('Vary', 'Accept-Encoding')
     res.setHeader('X-SEO-Function', 'active')
-    res.status(200).send(generateHTML(seoData, originalHTML, actualUrl))
+    res.status(200).send(generateHTML(seoData, INDEX_HTML, actualUrl))
   } catch (error) {
     console.error('[SEO Function] Error:', error)
     res.redirect(307, actualUrl)

@@ -9,6 +9,10 @@ const PreviewPage = lazy(() => import('./pages/PreviewPage').then(m => ({ defaul
 const SearchPage = lazy(() => import('./pages/SearchPage').then(m => ({ default: m.SearchPage })))
 const SignInRedirect = lazy(() => import('./pages/SignInRedirect').then(m => ({ default: m.SignInRedirect })))
 
+// Minimal fallback: keeps the page height stable while the route chunk loads so slower
+// connections don't see a blank flash between the shell and the lazy-loaded page.
+const RouteFallback = (): JSX.Element => <div aria-busy="true" aria-live="polite" style={{ minHeight: '60vh' }} />
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -21,7 +25,7 @@ export const router = createBrowserRouter([
   {
     path: '/blog/preview',
     element: (
-      <Suspense>
+      <Suspense fallback={<RouteFallback />}>
         <PreviewPage />
       </Suspense>
     )
@@ -29,7 +33,7 @@ export const router = createBrowserRouter([
   {
     path: '/blog/search',
     element: (
-      <Suspense>
+      <Suspense fallback={<RouteFallback />}>
         <SearchPage />
       </Suspense>
     )
@@ -37,7 +41,7 @@ export const router = createBrowserRouter([
   {
     path: '/blog/sign-in',
     element: (
-      <Suspense>
+      <Suspense fallback={<RouteFallback />}>
         <SignInRedirect />
       </Suspense>
     )
@@ -45,7 +49,7 @@ export const router = createBrowserRouter([
   {
     path: '/blog/author/:authorSlug',
     element: (
-      <Suspense>
+      <Suspense fallback={<RouteFallback />}>
         <AuthorPage />
       </Suspense>
     )
@@ -53,7 +57,7 @@ export const router = createBrowserRouter([
   {
     path: '/blog/:categorySlug',
     element: (
-      <Suspense>
+      <Suspense fallback={<RouteFallback />}>
         <CategoryPage />
       </Suspense>
     )
@@ -61,7 +65,7 @@ export const router = createBrowserRouter([
   {
     path: '/blog/:categorySlug/:postSlug',
     element: (
-      <Suspense>
+      <Suspense fallback={<RouteFallback />}>
         <PostPage />
       </Suspense>
     )
