@@ -46,8 +46,7 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            contentful: ['contentful'],
-            web3: ['viem', 'wagmi']
+            contentful: ['contentful']
           }
         }
       }
