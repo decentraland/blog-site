@@ -1,7 +1,8 @@
 import { useCallback, useContext, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Address } from 'viem'
-import { useAuthIdentity, useTokenBalance, useWallet } from '@dcl/core-web3'
+import { useTokenBalance } from '@dcl/core-web3'
+import { useWalletState } from '@dcl/core-web3/lazy'
 import { usePageTracking } from '@dcl/hooks'
 import { ChainId, Network } from '@dcl/schemas'
 import { Env } from '@dcl/ui-env'
@@ -10,6 +11,7 @@ import type { NavbarProps } from 'decentraland-ui2'
 import { config, getEnv } from '../../config'
 import { usePageNotifications } from '../../features/notifications/usePageNotifications'
 import { useGetProfileQuery } from '../../features/profile/profile.client'
+import { useAuthIdentity } from '../../hooks/useAuthIdentity'
 import { redirectToAuth } from '../../utils/authRedirect'
 import { BlogNavigation } from '../Blog/BlogNavigation'
 import { StandaloneContext } from './StandaloneContext'
@@ -31,7 +33,7 @@ export function PageLayout(props: PageLayoutProps) {
   const { children, activeCategory, banner, showBlogNavigation = false, relatedPosts } = props
   const standalone = useContext(StandaloneContext)
   const location = useLocation()
-  const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWallet()
+  const { address, isConnected, isConnecting, isDisconnecting, disconnect } = useWalletState()
   usePageTracking(location.pathname)
 
   // Auth identity for signed requests (notifications, etc.)
