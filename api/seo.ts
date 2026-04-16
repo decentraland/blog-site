@@ -255,8 +255,15 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
   }
 
   // Inject preload for hero image so the browser discovers it at HTML parse time
-  if (imageUrl && imageUrl !== DEFAULTS.image) {
+  if (imageUrl) {
     html = html.replace('</head>', `<link rel="preload" as="image" href="${imageUrl}" fetchpriority="high" />\n</head>`)
+  }
+
+  // Inject a visible <img> into <div id="root"> so the browser can paint LCP
+  // before React loads. React will replace this content on hydration.
+  if (imageUrl) {
+    const heroImg = `<img src="${imageUrl}" alt="${title}" width="697" height="349" style="object-fit:cover;border-radius:5px;max-width:100%;height:auto" fetchpriority="high" />`
+    html = html.replace('<div id="root"></div>', `<div id="root">${heroImg}</div>`)
   }
 
   return html
