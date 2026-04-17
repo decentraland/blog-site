@@ -118,9 +118,6 @@ const resolveEntryField = async (entryLink: CMSLink, field: string): Promise<str
   return entry?.fields?.[field] as string | undefined
 }
 
-const getSlug = (fields: Record<string, unknown>, fallbackId: string): string =>
-  (fields.slug as string) || (fields.id as string) || fallbackId
-
 const resolveImage = async (fields: Record<string, unknown>): Promise<string> => {
   if (fields.image && typeof fields.image === 'object') {
     const resolved = await resolveAssetUrl(fields.image as CMSLink)
@@ -134,8 +131,8 @@ const resolveImage = async (fields: Record<string, unknown>): Promise<string> =>
 // =============================================================================
 
 const findEntryBySlug = async (endpoint: string, slug: string): Promise<CMSEntry | null> => {
-  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}${endpoint}`)
-  return data?.items.find(item => getSlug(item.fields as Record<string, unknown>, item.sys.id) === slug) ?? null
+  const data = await fetchJSON<CMSListResponse>(`${CMS_BASE_URL}${endpoint}?fields.slug=${encodeURIComponent(slug)}&limit=1`)
+  return data?.items[0] ?? null
 }
 
 const fetchBlogPost = async (postSlug: string): Promise<SEOData | null> => {
@@ -321,9 +318,16 @@ const generateHTML = (data: SEOData | null, originalHTML: string, url: string): 
 const sanitizeBlogPath = (raw: unknown): string => {
   const value = Array.isArray(raw) ? raw[0] : raw
   if (typeof value !== 'string') return '/blog'
-  if (!value.startsWith('/blog')) return '/blog'
-  if (value.includes('..') || value.includes('//') || value.includes('\\')) return '/blog'
-  return value
+  // Parse to strip query strings, fragments, and normalise the path.
+  try {
+    const parsed = new URL(value, 'https://localhost')
+    const pathname = parsed.pathname
+    if (!pathname.startsWith('/blog')) return '/blog'
+    if (pathname.includes('..') || pathname.includes('//') || pathname.includes('\\')) return '/blog'
+    return pathname
+  } catch {
+    return '/blog'
+  }
 }
 
 const firstQueryValue = (raw: unknown): string | null => {
@@ -352,8 +356,13 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
 
   if (!INDEX_HTML) {
-    // Build output unavailable — bail out to a redirect so Vercel serves the static asset directly.
-    res.redirect(307, actualUrl)
+    // Build output unavailable. Cannot redirect to actualUrl because vercel.json rewrites
+    // /blog/* back to this function, which would create an infinite redirect loop.
+    // Serve a minimal page that client-side redirects to home instead.
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res
+      .status(200)
+      .send('<!doctype html><html><head><meta charset="utf-8"></head><body><script>location.replace("/")</script></body></html>')
     return
   }
 
@@ -367,8 +376,12 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     res.setHeader('X-SEO-Function', 'active')
     res.status(200).send(generateHTML(seoData, INDEX_HTML, actualUrl))
   } catch (error) {
+    // CMS unreachable — serve INDEX_HTML with default meta tags rather than redirecting
+    // to actualUrl (which would loop back to this function via vercel.json rewrite).
     console.error('[SEO Function] Error:', error)
-    res.redirect(307, actualUrl)
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.setHeader('Cache-Control', 'public, max-age=60')
+    res.status(200).send(generateHTML(null, INDEX_HTML, actualUrl))
   }
 }
 
