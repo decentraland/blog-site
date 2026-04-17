@@ -44,6 +44,13 @@ export default defineConfig(({ command, mode }) => {
       commonjsOptions: {
         transformMixedEsModules: true,
         include: [/node_modules/]
+      },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            contentful: ['contentful']
+          }
+        }
       }
     },
     optimizeDeps: {

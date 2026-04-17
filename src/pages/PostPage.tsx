@@ -150,7 +150,14 @@ export const PostPage = () => {
         tags={displayPost?.category.title ? [displayPost.category.title] : undefined}
       />
       <ContentContainer>
-        <PostImage src={displayPost.image.url} alt={displayPost.title} />
+        <PostImage
+          src={displayPost.image.url}
+          alt={displayPost.title}
+          width={displayPost.image.width}
+          height={displayPost.image.height}
+          fetchPriority="high"
+          decoding="async"
+        />
 
         <HeaderBox>
           <MetaText as="span">
@@ -168,7 +175,7 @@ export const PostPage = () => {
           <AuthorRow>
             <AuthorBox>
               <AuthorLink to={author.url}>
-                {author.image?.url && <AuthorAvatar src={author.image.url} alt={author.title} />}
+                {author.image?.url && <AuthorAvatar src={author.image.url} alt={author.title} loading="lazy" decoding="async" />}
                 <AuthorName variant="body2">{author.title}</AuthorName>
               </AuthorLink>
             </AuthorBox>

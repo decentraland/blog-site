@@ -1,5 +1,4 @@
 import { Typography } from 'decentraland-ui2'
-import { useImageWithLoading } from '../../../hooks/useImageWithLoading'
 import type { MainPostCardProps } from './MainPostCard.types'
 import {
   CardContainer,
@@ -23,9 +22,7 @@ import {
 
 const MainPostCard = (props: MainPostCardProps) => {
   const { post, loading } = props
-  const imageLoaded = useImageWithLoading(post?.image?.url)
 
-  // Full skeleton when loading prop is true (no data yet)
   if (loading) {
     return (
       <CardContainer>
@@ -50,13 +47,9 @@ const MainPostCard = (props: MainPostCardProps) => {
 
   return (
     <CardContainer>
-      {imageLoaded ? (
-        <CardImageLink to={post!.url}>
-          <CardImage $imageUrl={post!.image.url} />
-        </CardImageLink>
-      ) : (
-        <LoadingImage variant="rectangular" />
-      )}
+      <CardImageLink to={post!.url}>
+        <CardImage src={post!.image.url} alt={post!.title} width={697} height={349} fetchPriority="high" decoding="async" />
+      </CardImageLink>
       <CardInfo>
         <MetaBox>
           <DateText>{post!.publishedDate}</DateText>

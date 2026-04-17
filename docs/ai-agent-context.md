@@ -103,18 +103,18 @@ api/
 
 Key environment variables (defined in `src/config/env/dev.json` and `prd.json`):
 
-| Variable | Purpose |
-|---|---|
-| `CMS_BASE_URL` | Contentful REST API base URL |
-| `ALGOLIA_APP_ID` | Algolia application ID |
-| `ALGOLIA_API_KEY` | Algolia search-only API key |
-| `ALGOLIA_BLOG_INDEX` | Algolia index name for blog posts |
-| `AUTH_URL` | Decentraland SSO auth endpoint |
-| `PEER_URL` | Decentraland Catalyst peer URL (for profile fetching) |
-| `NOTIFICATIONS_API_URL` | Decentraland Notifications API |
-| `MAGIC_API_KEY` | Magic SDK publishable key |
-| `WALLET_CONNECT_PROJECT_ID` | WalletConnect project ID |
-| `SEGMENT_API_KEY` | Segment analytics write key |
+| Variable                    | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `CMS_BASE_URL`              | Contentful REST API base URL                          |
+| `ALGOLIA_APP_ID`            | Algolia application ID                                |
+| `ALGOLIA_API_KEY`           | Algolia search-only API key                           |
+| `ALGOLIA_BLOG_INDEX`        | Algolia index name for blog posts                     |
+| `AUTH_URL`                  | Decentraland SSO auth endpoint                        |
+| `PEER_URL`                  | Decentraland Catalyst peer URL (for profile fetching) |
+| `NOTIFICATIONS_API_URL`     | Decentraland Notifications API                        |
+| `MAGIC_API_KEY`             | Magic SDK publishable key                             |
+| `WALLET_CONNECT_PROJECT_ID` | WalletConnect project ID                              |
+| `SEGMENT_API_KEY`           | Segment analytics write key                           |
 
 **Testing:**
 

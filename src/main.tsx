@@ -22,10 +22,16 @@ setupListeners(store.dispatch)
 // Initialize helpers with store reference (for accessing RTK Query cache)
 initializeHelpers(store)
 
-// Preload categories and authors into RTK Query cache
-// This improves initial load time by having data ready when needed
-store.dispatch(blogClient.endpoints.getBlogCategories.initiate())
-store.dispatch(blogClient.endpoints.getBlogAuthors.initiate())
+// Defer category/author preloads so they don't compete with the critical render path
+const preloadData = () => {
+  store.dispatch(blogClient.endpoints.getBlogCategories.initiate())
+  store.dispatch(blogClient.endpoints.getBlogAuthors.initiate())
+}
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(preloadData)
+} else {
+  setTimeout(preloadData, 200)
+}
 
 const segmentWriteKey = getEnv('SEGMENT_API_KEY') || ''
 

@@ -39,7 +39,7 @@ const SearchResultCard = (props: SearchResultCardProps) => {
     <CardContainer>
       <Link to={result.url}>
         <CardContentBox>
-          {result.image && <CardImage src={result.image} alt="" />}
+          {result.image && <CardImage src={result.image} alt="" loading="lazy" decoding="async" />}
           <CardTextBox>
             {/* eslint-disable-next-line @typescript-eslint/naming-convention */}
             <CardTitle dangerouslySetInnerHTML={{ __html: result.title }} />

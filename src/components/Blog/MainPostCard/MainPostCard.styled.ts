@@ -13,21 +13,19 @@ const CardContainer = styled(Box)(() => ({
   }
 }))
 
-const CardImage = styled(Box)<{ $imageUrl: string }>(({ $imageUrl }) => ({
-  backgroundImage: `url("${$imageUrl}")`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
+const CardImage = styled('img')(() => ({
+  objectFit: 'cover',
   boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.16)',
   borderRadius: '5px',
   width: '697px',
-  paddingBottom: 'calc(697px * 0.5)',
+  height: '349px',
   marginRight: '31px',
   transition: 'transform 250ms ease, box-shadow 250ms ease'
 }))
 
 const CardImageLink = styled(Link)(() => ({
   display: 'block',
-  '&:hover > div': {
+  '&:hover > img': {
     transform: 'translate(0, -4px)',
     boxShadow: '0 10px 20px 0 rgba(0, 0, 0, 0.12)'
   }
