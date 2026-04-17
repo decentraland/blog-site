@@ -30,7 +30,7 @@ The Blog Site is a Vite/React single-page application that serves the Decentrala
 - Runtime: Node.js 20.x
 - Language: TypeScript 5.5
 - Frontend Framework: React 18 with React Router DOM 7
-- State Management: Redux Toolkit (RTK Query for data fetching, redux-persist for persistence)
+- State Management: Redux Toolkit (RTK Query for data fetching)
 - Styling: decentraland-ui2 component library (MUI-based)
 - CMS: Contentful (REST API via `@contentful/rich-text-react-renderer`)
 - Search: Algolia (`algoliasearch` v5)
@@ -41,7 +41,7 @@ The Blog Site is a Vite/React single-page application that serves the Decentrala
 
 **External Dependencies:**
 
-- Contentful CMS REST API (`cms.decentraland.org/spaces/ea2ybdmmn1kv/environments/master`) — blog posts, categories, authors, assets
+- Contentful CMS REST API (`cms-api.decentraland.org/spaces/ea2ybdmmn1kv/environments/master`) — blog posts, categories, authors, assets
 - Algolia (`1H67SAMO2T` app) — full-text search index `blog_contentful_prd`
 - Decentraland Catalyst peer (`peer.decentraland.org/lambdas/profiles/:address`) — user avatar/profile data
 - Decentraland Notifications API (`notifications.decentraland.org`) — in-app notification bell
