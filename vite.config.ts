@@ -62,7 +62,7 @@ export default defineConfig(({ command, mode }) => {
       /* eslint-disable @typescript-eslint/naming-convention */
       proxy: {
         '/api/cms': {
-          target: 'https://cms.decentraland.zone',
+          target: 'https://cms-api.decentraland.org',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api\/cms/, '/spaces/ea2ybdmmn1kv/environments/master'),
           configure: proxy => {

@@ -3,12 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { RouterProvider } from 'react-router-dom'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { PersistGate } from 'redux-persist/integration/react'
 import { Web3CoreProvider, Web3SyncProvider } from '@dcl/core-web3'
 import { WalletStateProvider } from '@dcl/core-web3/lazy'
 import { AnalyticsProvider, TranslationProvider } from '@dcl/hooks'
 import { DclThemeProvider, darkTheme } from 'decentraland-ui2'
-import { persistor, store } from './app/store'
+import { store } from './app/store'
 import { getEnv } from './config'
 import { blogClient } from './features/blog/blog.client'
 import { initializeHelpers } from './features/blog/blog.helpers'
@@ -38,21 +37,19 @@ const segmentWriteKey = getEnv('SEGMENT_API_KEY') || ''
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <WalletStateProvider>
-          <Web3CoreProvider config={web3Config}>
-            <Web3SyncProvider>
-              <DclThemeProvider theme={darkTheme}>
-                <AnalyticsProvider writeKey={segmentWriteKey}>
-                  <TranslationProvider locale="en" translations={{ en }} fallbackLocale="en">
-                    <RouterProvider router={router} />
-                  </TranslationProvider>
-                </AnalyticsProvider>
-              </DclThemeProvider>
-            </Web3SyncProvider>
-          </Web3CoreProvider>
-        </WalletStateProvider>
-      </PersistGate>
+      <WalletStateProvider>
+        <Web3CoreProvider config={web3Config}>
+          <Web3SyncProvider>
+            <DclThemeProvider theme={darkTheme}>
+              <AnalyticsProvider writeKey={segmentWriteKey}>
+                <TranslationProvider locale="en" translations={{ en }} fallbackLocale="en">
+                  <RouterProvider router={router} />
+                </TranslationProvider>
+              </AnalyticsProvider>
+            </DclThemeProvider>
+          </Web3SyncProvider>
+        </Web3CoreProvider>
+      </WalletStateProvider>
     </Provider>
   </StrictMode>
 )

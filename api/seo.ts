@@ -15,7 +15,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 // Constants
 // =============================================================================
 
-const CMS_BASE_URL = 'https://cms.decentraland.zone/spaces/ea2ybdmmn1kv/environments/master'
+const CMS_BASE_URL = 'https://cms-api.decentraland.org/spaces/ea2ybdmmn1kv/environments/master'
 
 const DEFAULTS = {
   title: 'Decentraland Blog | Updates, Stories, and Community Moments',

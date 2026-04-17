@@ -44,7 +44,6 @@
     "react-responsive": "10.0.1",
     "react-router-dom": "7.9.6",
     "react-twitter-embed": "4.0.4",
-    "redux-persist": "6.0.0",
     "reselect": "5.1.1",
     "thirdweb": "5.119.0",
     "viem": "2.44.2",
